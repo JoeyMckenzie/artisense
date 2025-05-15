@@ -18,6 +18,10 @@ use Symfony\Component\Console\Command\Command;
 covers(InstallCommand::class);
 
 describe(InstallCommand::class, function (): void {
+    beforeEach(function (): void {
+        Http::preventStrayRequests();
+    });
+
     it('downloads and installs Laravel docs, returning successful code', function (): void {
         // Arrange, setup mocks
         $mockZipContent = 'fake-zip-content';
@@ -39,13 +43,13 @@ describe(InstallCommand::class, function (): void {
 
         // Disk mock
         $disk = Mockery::mock(Disk::class);
-        $disk->shouldReceive('exists')->andReturn(false);
+        $disk->shouldReceive('exists')->times(2)->andReturn(false);
         $disk->shouldReceive('makeDirectory')->times(2);
-        $disk->shouldReceive('put')->with('artisense/laravel-docs.zip', $mockZipContent);
+        $disk->shouldReceive('put')->with('artisense/laravel-docs.zip', $mockZipContent)->once();
         $disk->shouldReceive('path')->andReturnUsing(fn (string $path): string => "storage/app/$path");
         $disk->shouldReceive('files')->with('artisense/docs-master')->andReturn($mockFilesList);
-        $disk->shouldReceive('delete')->with('artisense/laravel-docs.zip');
-        $disk->shouldReceive('deleteDirectory')->with('artisense/docs-master');
+        $disk->shouldReceive('delete')->with('artisense/laravel-docs.zip')->once();
+        $disk->shouldReceive('deleteDirectory')->with('artisense/docs-master')->once();
 
         // Storage mock
         $storage = Mockery::mock(FilesystemManager::class);

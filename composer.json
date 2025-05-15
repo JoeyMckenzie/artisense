@@ -29,6 +29,7 @@
         "pestphp/pest": "^v3.8.2",
         "pestphp/pest-plugin-arch": "^v3.1.1",
         "pestphp/pest-plugin-laravel": "^v3.2.0",
+        "pestphp/pest-plugin-type-coverage": "^3.5",
         "phpstan/extension-installer": "^1.4.3",
         "phpstan/phpstan-deprecation-rules": "^2.0.3",
         "phpstan/phpstan-phpunit": "^2.0.6",

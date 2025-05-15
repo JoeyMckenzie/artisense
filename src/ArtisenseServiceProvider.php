@@ -4,24 +4,34 @@ declare(strict_types=1);
 
 namespace Artisense;
 
+use Artisense\Actions\UnzipDocsArchiveAction;
 use Artisense\Console\Commands\InstallCommand;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
+use Illuminate\Support\ServiceProvider;
+use Override;
 
-final class ArtisenseServiceProvider extends PackageServiceProvider
+final class ArtisenseServiceProvider extends ServiceProvider
 {
-    public function configurePackage(Package $package): void
+    #[Override]
+    public function register(): void
     {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
-        $package
-            ->name('artisense')
-            ->hasConfigFile()
-            ->hasViews()
-            ->hasMigration('create_artisense_table')
-            ->hasCommand(InstallCommand::class);
+        $this->mergeConfigFrom(
+            __DIR__.'/../config/artisense.php', 'artisense'
+        );
+    }
+
+    public function boot(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                InstallCommand::class,
+            ]);
+
+            $this->publishes([
+                __DIR__.'/../config/artisense.php' => config_path('artisense.php'),
+            ], 'artisense-config');
+        }
+
+        $this->app->bind(UnzipsDocsArchiveAction::class, UnzipDocsArchiveAction::class);
     }
 }

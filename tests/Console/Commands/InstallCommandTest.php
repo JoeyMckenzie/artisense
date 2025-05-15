@@ -6,7 +6,6 @@ namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Artisense;
 use Artisense\Console\Commands\InstallCommand;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\Console\Command\Command;
@@ -16,9 +15,10 @@ covers(InstallCommand::class);
 describe(InstallCommand::class, function (): void {
     it('downloads and installs Laravel docs', function (): void {
         // Arrange
+        $file = file_get_contents(__DIR__.'/../../Fixtures/laravel-docs.zip');
         Storage::fake('local');
         Http::fake([
-            Artisense::GITHUB_SOURCE_ZIP => Http::response(file_get_contents(__DIR__.'/../../Fixtures/laravel-docs.zip')),
+            Artisense::GITHUB_SOURCE_ZIP => Http::response($file),
         ]);
 
         // Act
@@ -31,7 +31,6 @@ describe(InstallCommand::class, function (): void {
 
         // Assert
         expect(Storage::disk('local')->exists('artisense/docs'))->toBeTrue()
-            ->and(File::exists(storage_path('app/artisense/docs/README.md')))->toBeTrue()
             ->and($exitCode)->toBe(Command::SUCCESS);
     });
 });

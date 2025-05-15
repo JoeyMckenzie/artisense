@@ -5,12 +5,13 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\Artisense;
+use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
-use ZipArchive;
 
 final class InstallCommand extends Command
 {
@@ -20,7 +21,7 @@ final class InstallCommand extends Command
 
     private Filesystem $disk;
 
-    public function handle(): int
+    public function handle(UnzipsDocsArchiveAction $action): int
     {
         $this->info('🔧 Installing Artisense...');
         $this->line('Fetching Laravel docs from GitHub...');
@@ -37,22 +38,20 @@ final class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        $saved = $this->disk->put('artisense/laravel-docs.zip', $response->body());
+        $this->disk->put('artisense/laravel-docs.zip', $response->body());
 
         $this->line('Unzipping docs...');
 
-        $zip = new ZipArchive;
         $extractedZipPath = $this->disk->path('artisense/laravel-docs.zip');
+        $extractPath = $this->disk->path('artisense');
 
-        if ($zip->open($extractedZipPath) !== true) {
-            $this->error('Failed to unzip docs.');
+        try {
+            $action->handle($extractedZipPath, $extractPath);
+        } catch (Exception $e) {
+            $this->error('Failed to unzip docs: '.$e->getMessage());
 
             return self::FAILURE;
         }
-
-        $extractPath = $this->disk->path('artisense');
-        $zip->extractTo($extractPath);
-        $zip->close();
 
         $this->line('Moving docs to subfolder...');
 

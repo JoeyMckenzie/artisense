@@ -8,6 +8,7 @@ use Artisense\Artisense;
 use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
 use Artisense\Exceptions\FailedToUnzipArchiveException;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Console\Kernel as ConsoleKernelContract;
 use Illuminate\Contracts\Filesystem\Filesystem as Disk;
 use Illuminate\Filesystem\Filesystem as Files;
 use Illuminate\Filesystem\FilesystemManager;
@@ -26,6 +27,7 @@ final class InstallCommand extends Command
         FilesystemManager $storage,
         Files $files,
         Http $http,
+        ConsoleKernelContract $artisan
     ): int {
         $this->info('🔧 Installing Artisense...');
         $this->line('Fetching Laravel docs from GitHub...');
@@ -71,6 +73,8 @@ final class InstallCommand extends Command
         $this->disk->deleteDirectory('artisense/docs-master');
 
         $this->info('✅ Laravel docs downloaded and ready!');
+
+        // $artisan->call('artisense:parse-docs');
 
         return self::SUCCESS;
     }

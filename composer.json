@@ -17,8 +17,9 @@
     ],
     "require": {
         "php": "^8.4",
+        "ext-zip": "*",
         "illuminate/contracts": "^12.0",
-        "ext-zip": "*"
+        "league/commonmark": "^2.7"
     },
     "require-dev": {
         "larastan/larastan": "^v3.4.0",

@@ -6,6 +6,7 @@ namespace Artisense;
 
 use Artisense\Actions\UnzipDocsArchiveAction;
 use Artisense\Console\Commands\InstallCommand;
+use Artisense\Console\Commands\ParseDocsCommand;
 use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -25,6 +26,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,
+                ParseDocsCommand::class,
             ]);
 
             $this->publishes([

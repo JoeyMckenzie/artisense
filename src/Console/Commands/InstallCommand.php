@@ -6,8 +6,10 @@ namespace Artisense\Console\Commands;
 
 use Artisense\Artisense;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 use ZipArchive;
 
 final class InstallCommand extends Command
@@ -16,10 +18,14 @@ final class InstallCommand extends Command
 
     public $description = 'Installs and initializes Artisense by downloading Laravel documentation.';
 
+    private Filesystem $disk;
+
     public function handle(): int
     {
         $this->info('🔧 Installing Artisense...');
         $this->line('Fetching Laravel docs from GitHub...');
+
+        $this->disk = Storage::disk('local');
 
         self::ensureArtisenseDirsExist();
 
@@ -31,32 +37,35 @@ final class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        file_put_contents($this->zipPath(), $response->body());
+        $saved = $this->disk->put('artisense/laravel-docs.zip', $response->body());
 
         $this->line('Unzipping docs...');
 
         $zip = new ZipArchive;
-        if ($zip->open($this->zipPath()) !== true) {
+        $extractedZipPath = $this->disk->path('artisense/laravel-docs.zip');
+
+        if ($zip->open($extractedZipPath) !== true) {
             $this->error('Failed to unzip docs.');
 
             return self::FAILURE;
         }
 
-        $zip->extractTo($this->extractPath());
+        $extractPath = $this->disk->path('artisense');
+        $zip->extractTo($extractPath);
         $zip->close();
 
         $this->line('Moving docs to subfolder...');
 
-        $markdownFiles = File::glob("{$this->extractPath()}/docs-master/*.md");
+        $markdownFiles = $this->disk->files('artisense/docs-master');
 
         foreach ($markdownFiles as $file) {
-            File::move($file, $this->targetDocsPath().'/'.basename((string) $file));
+            File::move($this->disk->path($file), $this->disk->path('artisense/docs/'.basename($file)));
         }
 
         $this->line('Removing temporary files...');
 
-        unlink($this->zipPath());
-        File::deleteDirectory("{$this->extractPath()}/docs-master");
+        $this->disk->delete('artisense/laravel-docs.zip');
+        $this->disk->deleteDirectory('artisense/docs-master');
 
         $this->info('✅ Laravel docs downloaded and ready in: storage/app/artisense/docs');
 
@@ -66,29 +75,14 @@ final class InstallCommand extends Command
     private function ensureArtisenseDirsExist(): void
     {
         $paths = [
-            storage_path('app/artisense'),
-            storage_path('app/artisense/docs'),
+            'artisense',
+            'artisense/docs',
         ];
 
         foreach ($paths as $path) {
-            if (! is_dir($path)) {
-                mkdir($path, 0755, true);
+            if (! $this->disk->exists($path)) {
+                $this->disk->makeDirectory($path);
             }
         }
-    }
-
-    private function zipPath(): string
-    {
-        return storage_path('app/artisense/laravel-docs.zip');
-    }
-
-    private function extractPath(): string
-    {
-        return storage_path('app/artisense');
-    }
-
-    private function targetDocsPath(): string
-    {
-        return storage_path('app/artisense/docs');
     }
 }

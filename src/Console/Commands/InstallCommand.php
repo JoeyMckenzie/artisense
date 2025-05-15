@@ -8,10 +8,10 @@ use Artisense\Artisense;
 use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
 use Exception;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Filesystem\Filesystem;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Contracts\Filesystem\Filesystem as Disk;
+use Illuminate\Filesystem\Filesystem as Files;
+use Illuminate\Filesystem\FilesystemManager;
+use Illuminate\Http\Client\Factory as Http;
 
 final class InstallCommand extends Command
 {
@@ -19,18 +19,22 @@ final class InstallCommand extends Command
 
     public $description = 'Installs and initializes Artisense by downloading Laravel documentation.';
 
-    private Filesystem $disk;
+    private Disk $disk;
 
-    public function handle(UnzipsDocsArchiveAction $action): int
-    {
+    public function handle(
+        UnzipsDocsArchiveAction $action,
+        FilesystemManager $storage,
+        Files $files,
+        Http $http,
+    ): int {
         $this->info('🔧 Installing Artisense...');
         $this->line('Fetching Laravel docs from GitHub...');
 
-        $this->disk = Storage::disk('local');
+        $this->disk = $storage->disk('local');
 
         self::ensureArtisenseDirsExist();
 
-        $response = Http::get(Artisense::GITHUB_SOURCE_ZIP);
+        $response = $http->get(Artisense::GITHUB_SOURCE_ZIP);
 
         if (! $response->ok()) {
             $this->error('Failed to download docs from GitHub.');
@@ -58,7 +62,7 @@ final class InstallCommand extends Command
         $markdownFiles = $this->disk->files('artisense/docs-master');
 
         foreach ($markdownFiles as $file) {
-            File::move($this->disk->path($file), $this->disk->path('artisense/docs/'.basename($file)));
+            $files->move($this->disk->path($file), $this->disk->path('artisense/docs/'.basename($file)));
         }
 
         $this->line('Removing temporary files...');
@@ -66,7 +70,7 @@ final class InstallCommand extends Command
         $this->disk->delete('artisense/laravel-docs.zip');
         $this->disk->deleteDirectory('artisense/docs-master');
 
-        $this->info('✅ Laravel docs downloaded and ready in: storage/app/artisense/docs');
+        $this->info('✅ Laravel docs downloaded and ready!');
 
         return self::SUCCESS;
     }

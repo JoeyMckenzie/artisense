@@ -58,7 +58,7 @@ final class InstallCommand extends Command
         unlink($this->zipPath());
         File::deleteDirectory("{$this->extractPath()}/docs-master");
 
-        $this->info('✅ Laravel docs downloaded and ready in: storage/artisense/docs');
+        $this->info('✅ Laravel docs downloaded and ready in: storage/app/artisense/docs');
 
         return self::SUCCESS;
     }
@@ -66,8 +66,8 @@ final class InstallCommand extends Command
     private function ensureArtisenseDirsExist(): void
     {
         $paths = [
-            storage_path('artisense'),
-            storage_path('artisense/docs'),
+            storage_path('app/artisense'),
+            storage_path('app/artisense/docs'),
         ];
 
         foreach ($paths as $path) {
@@ -79,16 +79,16 @@ final class InstallCommand extends Command
 
     private function zipPath(): string
     {
-        return storage_path('artisense/laravel-docs.zip');
+        return storage_path('app/artisense/laravel-docs.zip');
     }
 
     private function extractPath(): string
     {
-        return storage_path('artisense');
+        return storage_path('app/artisense');
     }
 
     private function targetDocsPath(): string
     {
-        return storage_path('artisense/docs');
+        return storage_path('app/artisense/docs');
     }
 }

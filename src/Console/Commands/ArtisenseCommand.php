@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Commands;
+namespace Artisense\Console\Commands;
 
 use Illuminate\Console\Command;
 

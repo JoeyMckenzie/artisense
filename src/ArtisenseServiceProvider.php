@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense;
 
-use Artisense\Commands\ArtisenseCommand;
+use Artisense\Console\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -22,6 +22,6 @@ final class ArtisenseServiceProvider extends PackageServiceProvider
             ->hasConfigFile()
             ->hasViews()
             ->hasMigration('create_artisense_table')
-            ->hasCommand(ArtisenseCommand::class);
+            ->hasCommand(InstallCommand::class);
     }
 }

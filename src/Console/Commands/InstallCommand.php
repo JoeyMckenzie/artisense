@@ -6,7 +6,7 @@ namespace Artisense\Console\Commands;
 
 use Artisense\Artisense;
 use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
-use Exception;
+use Artisense\Exceptions\FailedToUnzipArchiveException;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Filesystem\Filesystem as Disk;
 use Illuminate\Filesystem\Filesystem as Files;
@@ -51,7 +51,7 @@ final class InstallCommand extends Command
 
         try {
             $action->handle($extractedZipPath, $extractPath);
-        } catch (Exception $e) {
+        } catch (FailedToUnzipArchiveException $e) {
             $this->error('Failed to unzip docs: '.$e->getMessage());
 
             return self::FAILURE;

@@ -1,27 +1,22 @@
 <?php
 
-namespace VendorName\Skeleton\Tests;
+declare(strict_types=1);
 
+namespace Artisense\Artisense\Tests;
+
+use Artisense\Artisense\ArtisenseServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
-use VendorName\Skeleton\SkeletonServiceProvider;
 
-class TestCase extends Orchestra
+final class TestCase extends Orchestra
 {
     protected function setUp(): void
     {
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'VendorName\\Skeleton\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'Artisense\\Artisense\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
-    }
-
-    protected function getPackageProviders($app)
-    {
-        return [
-            SkeletonServiceProvider::class,
-        ];
     }
 
     public function getEnvironmentSetUp($app)
@@ -33,5 +28,12 @@ class TestCase extends Orchestra
             (include $migration->getRealPath())->up();
          }
          */
+    }
+
+    protected function getPackageProviders($app)
+    {
+        return [
+            ArtisenseServiceProvider::class,
+        ];
     }
 }

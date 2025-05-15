@@ -2,23 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Artisense\Tests;
+namespace Artisense\Tests;
 
-use Artisense\Artisense\ArtisenseServiceProvider;
+use Artisense\ArtisenseServiceProvider;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Override;
 
-final class TestCase extends Orchestra
+class TestCase extends Orchestra
 {
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'Artisense\\Artisense\\Database\\Factories\\'.class_basename($modelName).'Factory'
-        );
-    }
-
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');
@@ -28,6 +20,16 @@ final class TestCase extends Orchestra
             (include $migration->getRealPath())->up();
          }
          */
+    }
+
+    #[Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Factory::guessFactoryNamesUsing(
+            fn(string $modelName): string => 'Artisense\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
+        );
     }
 
     protected function getPackageProviders($app)

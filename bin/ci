@@ -1,0 +1,101 @@
+#!/bin/bash
+
+set -e
+
+success() {
+  echo -e "\033[0;32m✓ $1\033[0m"
+}
+
+info() {
+  echo -e "\033[0;34mi $1\033[0m"
+}
+
+error() {
+  echo -e "\033[0;31m✗ $1\033[0m"
+}
+
+project_root=$(git rev-parse --show-toplevel)
+env_file="$project_root/.env"
+vendor="$project_root/vendor"
+node_modules="$project_root/node_modules"
+
+# Use POSIX-compatible test syntax or ensure bash is used
+case "$OSTYPE" in
+  linux*)
+    OS_RUNNER="Linux"
+    ;;
+  darwin*)
+    OS_RUNNER="macOS"
+    ;;
+  *)
+    error "OS runner could not be detected!"
+    exit 1
+    ;;
+esac
+
+info "Detected OS: $OS_RUNNER"
+
+if [ ! -d "$vendor" ]; then
+    info "Installing composer dependencies..."
+    composer install --no-interaction --prefer-dist --no-progress --optimize-autoloader
+fi
+
+if [ ! -d "$node_modules" ]; then
+    info "Installing npm dependencies..."
+    npm ci
+fi
+
+if [ ! -f "$env_file" ]; then
+    info ".env file not found, initializing environment"
+    cp .env.example .env
+    php artisan key:generate
+fi
+
+# Use POSIX-compatible redirection
+if command -v aspell > /dev/null 2>&1; then
+  success "Aspell is already installed"
+  aspell_version=$(aspell --version | head -n 1)
+  info "Detected $aspell_version"
+else
+  if [ "$OS_RUNNER" = "Linux" ]; then
+    info "Installing Aspell on Linux..."
+    sudo apt-get update && sudo apt-get install -y aspell aspell-en
+    if [ $? -eq 0 ]; then
+      success "Aspell installed successfully"
+    else
+      error "Failed to install Aspell"
+      exit 1
+    fi
+  elif [ "$OS_RUNNER" = "macOS" ]; then
+    info "Installing Aspell on macOS..."
+    brew install aspell
+    if [ $? -eq 0 ]; then
+      success "Aspell installed successfully"
+    else
+      error "Failed to install Aspell"
+      exit 1
+    fi
+  fi
+fi
+
+info "Running frontend CI checks..."
+
+npm run lint
+
+info "Building assets..."
+
+php artisan ziggy:generate
+npm run build:ssr
+
+info "Running backend CI checks..."
+
+composer run ci
+
+info "Auditing dependencies..."
+
+composer audit
+npm audit
+
+success "CI successful!"
+
+exit 0

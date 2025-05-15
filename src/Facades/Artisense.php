@@ -13,6 +13,6 @@ final class Artisense extends Facade
 {
     protected static function getFacadeAccessor(): string
     {
-        return \Artisense\Artisense\Artisense::class;
+        return \Artisense\Artisense::class;
     }
 }

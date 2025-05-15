@@ -45,17 +45,20 @@ final class InstallCommand extends Command
         $zip->extractTo($this->extractPath());
         $zip->close();
 
-        // Move markdown files to artisan-friendly path
+        $this->line('Moving docs to subfolder...');
+
         $markdownFiles = File::glob("{$this->extractPath()}/docs-master/*.md");
 
         foreach ($markdownFiles as $file) {
             File::move($file, $this->targetDocsPath().'/'.basename((string) $file));
         }
 
+        $this->line('Removing temporary files...');
+
         unlink($this->zipPath());
         File::deleteDirectory("{$this->extractPath()}/docs-master");
 
-        $this->info('✅ Laravel docs downloaded and ready in: storage/app/artisense/docs');
+        $this->info('✅ Laravel docs downloaded and ready in: storage/artisense/docs');
 
         return self::SUCCESS;
     }

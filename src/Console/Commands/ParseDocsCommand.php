@@ -6,11 +6,15 @@ namespace Artisense\Console\Commands;
 
 use Artisense\Contracts\Support\StorageManager;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Config\Repository;
+use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;
+use Symfony\Component\Finder\SplFileInfo;
 
 final class ParseDocsCommand extends Command
 {
@@ -20,26 +24,35 @@ final class ParseDocsCommand extends Command
 
     private CommonMarkConverter $converter;
 
-    public function handle(
-        StorageManager $disk,
-        Filesystem $files,
-    ): int {
+    private ConnectionInterface $db;
+
+    public function __construct(
+        private readonly StorageManager $disk,
+        private readonly Filesystem $files,
+        private readonly Repository $config,
+        private readonly ConnectionResolverInterface $resolver
+    ) {
+        parent::__construct();
+    }
+
+    public function handle(): int
+    {
         $this->info('🔍 Parsing Laravel docs...');
 
-        $docsPath = $disk->path('docs');
-        $dbPath = $disk->path('artisense.sqlite');
+        $docsPath = $this->disk->path('docs');
+        $dbPath = $this->disk->path('artisense.sqlite');
 
         $this->line('Preparing database...');
 
         // Ensure DB directory exists
-        $files->ensureDirectoryExists(dirname($dbPath));
+        $this->files->ensureDirectoryExists(dirname($dbPath));
 
-        if (! $files->exists($dbPath)) {
-            $files->put($dbPath, '');
+        if (! $this->files->exists($dbPath)) {
+            $this->files->put($dbPath, '');
         }
 
         // Set up SQLite connection
-        config([
+        $this->config->set([
             'database.connections.artisense' => [
                 'driver' => 'sqlite',
                 'database' => $dbPath,
@@ -47,10 +60,11 @@ final class ParseDocsCommand extends Command
             ],
         ]);
 
-        DB::connection('artisense')->statement('DROP TABLE IF EXISTS docs');
-        DB::connection('artisense')->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
+        $this->db = $this->resolver->connection('artisense');
+        $this->db->statement('DROP TABLE IF EXISTS docs');
+        $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
 
-        $docFiles = $files->allFiles($docsPath);
+        $docFiles = $this->files->allFiles($docsPath);
         $this->converter = new CommonMarkConverter();
 
         $this->line(sprintf('Found %d docs files...', count($docFiles)));
@@ -61,7 +75,7 @@ final class ParseDocsCommand extends Command
             }
 
             $path = $file->getRelativePathname();
-            $raw = $files->get($file->getRealPath());
+            $raw = $this->files->get($file->getRealPath());
 
             // Match all headings
             preg_match_all('/^(#{1,6})\s+(.+)$/m', $raw, $matches, PREG_OFFSET_CAPTURE);
@@ -128,7 +142,7 @@ final class ParseDocsCommand extends Command
             $baseUrl = sprintf('%s/', $baseUrl);
         }
 
-        DB::connection('artisense')->table('docs')->insert([
+        $this->db->table('docs')->insert([
             'title' => $title,
             'heading' => $heading,
             'markdown' => $content,
@@ -144,5 +158,65 @@ final class ParseDocsCommand extends Command
         assert(is_string($slugged));
 
         return mb_strtolower(mb_trim($slugged, '-'));
+    }
+
+    private function processMarkdownDocument(SplFileInfo $file)
+    {
+        if ($file->getExtension() !== 'md') {
+            return;
+        }
+
+        $path = $file->getRelativePathname();
+        $raw = $this->files->get($file->getRealPath());
+
+        // Match all headings
+        preg_match_all('/^(#{1,6})\s+(.+)$/m', $raw, $matches, PREG_OFFSET_CAPTURE);
+        $headings = $matches[0];
+        $levels = $matches[1];
+        $texts = $matches[2];
+
+        if (empty($headings)) {
+            self::createEntry('[Untitled]', '[Intro]', $raw, $path);
+
+            return;
+        }
+
+        $title = null;
+        $sections = [];
+
+        for ($i = 0; $i < count($headings); $i++) {
+            // Start of current heading
+            /** @var int $currentHeading */
+            $currentHeading = $headings[$i][1];
+
+            // Start of next heading or end of document
+            $nextHeading = $headings[$i + 1][1] ?? mb_strlen($raw);
+
+            // Actual heading text (e.g., "Available Rules")
+            $headingText = mb_trim($texts[$i][0]);
+
+            // How many # characters (1 for h1, 2 for h2, etc.)
+            $level = mb_strlen($levels[$i][0]);
+
+            // Markdown section starting at current heading and ending at next
+            $content = mb_substr($raw, $currentHeading, $nextHeading - $currentHeading);
+
+            // Capture the first h1 as the document title
+            if ($level === 1 && $title === null) {
+                $title = $headingText;
+            }
+
+            // Save this section for later DB insert
+            $sections[] = [
+                'heading' => $headingText,
+                'content' => $content,
+            ];
+        }
+
+        $title ??= '[Untitled]';
+
+        foreach ($sections as $section) {
+            self::createEntry($title, $section['heading'], $section['content'], $path);
+        }
     }
 }

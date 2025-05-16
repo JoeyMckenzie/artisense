@@ -48,7 +48,7 @@ final class ParseDocsCommand extends Command
         ]);
 
         DB::connection('artisense')->statement('DROP TABLE IF EXISTS docs');
-        DB::connection('artisense')->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, content, path, link)');
+        DB::connection('artisense')->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
 
         $docFiles = $files->allFiles($docsPath);
         $this->converter = new CommonMarkConverter();
@@ -131,6 +131,7 @@ final class ParseDocsCommand extends Command
         DB::connection('artisense')->table('docs')->insert([
             'title' => $title,
             'heading' => $heading,
+            'markdown' => $content,
             'content' => strip_tags($this->converter->convert($content)->getContent()),
             'path' => $path,
             'link' => sprintf('%s%s', $baseUrl, $link),
@@ -143,13 +144,5 @@ final class ParseDocsCommand extends Command
         assert(is_string($slugged));
 
         return mb_strtolower(mb_trim($slugged, '-'));
-    }
-
-    private function createEntryForDocumentSection(string $section, string $title, string $path): void
-    {
-        $lines = explode("\n", $section, 2);
-        $heading = mb_trim($lines[0]);
-        $content = $lines[1] ?? '';
-        self::createEntry($title, $heading, $content, $path);
     }
 }

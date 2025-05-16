@@ -8,6 +8,8 @@ use Artisense\Actions\UnzipDocsArchiveAction;
 use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\ParseDocsCommand;
 use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
+use Artisense\Contracts\Support\StorageManager;
+use Artisense\Support\DiskManager;
 use Illuminate\Support\ServiceProvider;
 use Override;
 
@@ -35,5 +37,6 @@ final class ArtisenseServiceProvider extends ServiceProvider
         }
 
         $this->app->bind(UnzipsDocsArchiveAction::class, UnzipDocsArchiveAction::class);
+        $this->app->bind(StorageManager::class, DiskManager::class);
     }
 }

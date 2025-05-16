@@ -7,10 +7,9 @@ namespace Artisense\Tests\Console\Commands;
 use Artisense\Artisense;
 use Artisense\Console\Commands\InstallCommand;
 use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
+use Artisense\Contracts\Support\StorageManager;
 use Artisense\Exceptions\FailedToUnzipArchiveException;
-use Illuminate\Contracts\Filesystem\Filesystem as Disk;
 use Illuminate\Filesystem\Filesystem as Files;
-use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Support\Facades\Http;
 use Mockery;
 use Symfony\Component\Console\Command\Command;
@@ -25,10 +24,10 @@ describe(InstallCommand::class, function (): void {
     it('downloads and installs Laravel docs, returning successful code', function (): void {
         // Arrange, setup mocks
         $mockZipContent = 'fake-zip-content';
-        $fakeZipPath = 'storage/app/artisense/laravel-docs.zip';
-        $fakeExtractPath = 'storage/app/artisense';
+        $fakeZipPath = 'storage/artisense/laravel-docs.zip';
+        $fakeExtractPath = 'storage/artisense';
         $mockFilesList = [
-            'artisense/docs-master/doc.md',
+            'doc.md',
         ];
 
         // HTTP mock
@@ -42,26 +41,26 @@ describe(InstallCommand::class, function (): void {
             ->withArgs(fn (string $source, string $target): bool => str_contains($source, 'doc.md') && str_contains($target, 'doc.md'));
 
         // Disk mock
-        $disk = Mockery::mock(Disk::class);
-        $disk->shouldReceive('exists')->times(2)->andReturn(false);
-        $disk->shouldReceive('makeDirectory')->times(2);
-        $disk->shouldReceive('put')->with('artisense/laravel-docs.zip', $mockZipContent)->once();
-        $disk->shouldReceive('path')->andReturnUsing(fn (string $path): string => "storage/app/$path");
-        $disk->shouldReceive('files')->with('artisense/docs-master')->andReturn($mockFilesList);
-        $disk->shouldReceive('delete')->with('artisense/laravel-docs.zip')->once();
-        $disk->shouldReceive('deleteDirectory')->with('artisense/docs-master')->once();
-
-        // Storage mock
-        $storage = Mockery::mock(FilesystemManager::class);
-        $storage->shouldReceive('disk')->with('local')->andReturn($disk);
+        $disk = Mockery::mock(StorageManager::class);
+        $disk->shouldReceive('ensureDirectoriesExist')->once();
+        $disk->shouldReceive('put')->with('laravel-docs.zip', $mockZipContent)->once();
+        $disk->shouldReceive('path')->with('laravel-docs.zip')->andReturn('storage/artisense/laravel-docs.zip');
+        $disk->shouldReceive('getBasePath')->andReturn('storage/artisense');
+        $disk->shouldReceive('files')->with('docs-master')->andReturn($mockFilesList);
+        $disk->shouldReceive('path')->with('docs-master/doc.md')->andReturn('storage/artisense/docs-master/doc.md');
+        $disk->shouldReceive('path')->with('docs/doc.md')->andReturn('storage/artisense/docs/doc.md');
+        $disk->shouldReceive('delete')->with('laravel-docs.zip')->once();
+        $disk->shouldReceive('deleteDirectory')->with('docs-master')->once();
 
         // Action mock
         $action = Mockery::mock(UnzipsDocsArchiveAction::class);
-        $action->shouldReceive('handle')->with($fakeZipPath, $fakeExtractPath);
+        $action->shouldReceive('handle')
+            ->with($fakeZipPath, $fakeExtractPath)
+            ->once();
 
         // Bind to container
         app()->instance(Files::class, $files);
-        app()->instance(FilesystemManager::class, $storage);
+        app()->instance(StorageManager::class, $disk);
         app()->instance(UnzipsDocsArchiveAction::class, $action);
 
         // Act & assert
@@ -86,18 +85,16 @@ describe(InstallCommand::class, function (): void {
         $files->shouldNotReceive('move');
 
         // Disk mock
-        $disk = Mockery::mock(Disk::class);
-        $disk->shouldReceive('exists')->andReturn(false);
-        $disk->shouldReceive('makeDirectory')->times(2);
+        $disk = Mockery::mock(StorageManager::class);
+        $disk->shouldNotReceive('ensureDirectoriesExist');
         $disk->shouldNotReceive('put');
         $disk->shouldNotReceive('path');
+        $disk->shouldNotReceive('getBasePath');
         $disk->shouldNotReceive('files');
+        $disk->shouldNotReceive('path');
+        $disk->shouldNotReceive('path');
         $disk->shouldNotReceive('delete');
         $disk->shouldNotReceive('deleteDirectory');
-
-        // Storage mock
-        $storage = Mockery::mock(FilesystemManager::class);
-        $storage->shouldReceive('disk')->with('local')->andReturn($disk);
 
         // Action mock
         $action = Mockery::mock(UnzipsDocsArchiveAction::class);
@@ -105,7 +102,7 @@ describe(InstallCommand::class, function (): void {
 
         // Bind to container
         app()->instance(Files::class, $files);
-        app()->instance(FilesystemManager::class, $storage);
+        app()->instance(StorageManager::class, $disk);
         app()->instance(UnzipsDocsArchiveAction::class, $action);
 
         // Act & assert
@@ -122,8 +119,8 @@ describe(InstallCommand::class, function (): void {
     it('returns failure code if unzip action fails', function (): void {
         // Arrange, setup mocks
         $mockZipContent = 'fake-zip-content';
-        $fakeZipPath = 'storage/app/artisense/laravel-docs.zip';
-        $fakeExtractPath = 'storage/app/artisense';
+        $fakeZipPath = 'storage/artisense/laravel-docs.zip';
+        $fakeExtractPath = 'storage/artisense';
 
         // HTTP mock
         Http::fake([
@@ -135,18 +132,16 @@ describe(InstallCommand::class, function (): void {
         $files->shouldNotReceive('move');
 
         // Disk mock
-        $disk = Mockery::mock(Disk::class);
-        $disk->shouldReceive('exists')->andReturn(false);
-        $disk->shouldReceive('makeDirectory')->times(2);
-        $disk->shouldReceive('put')->with('artisense/laravel-docs.zip', $mockZipContent);
-        $disk->shouldReceive('path')->andReturnUsing(fn (string $path): string => "storage/app/$path");
+        $disk = Mockery::mock(StorageManager::class);
+        $disk->shouldReceive('ensureDirectoriesExist')->once();
+        $disk->shouldReceive('put')->with('laravel-docs.zip', $mockZipContent)->once();
+        $disk->shouldReceive('path')->with('laravel-docs.zip')->andReturn('storage/artisense/laravel-docs.zip');
+        $disk->shouldReceive('getBasePath')->andReturn('storage/artisense');
         $disk->shouldNotReceive('files');
+        $disk->shouldNotReceive('path');
+        $disk->shouldNotReceive('path');
         $disk->shouldNotReceive('delete');
         $disk->shouldNotReceive('deleteDirectory');
-
-        // Storage mock
-        $storage = Mockery::mock(FilesystemManager::class);
-        $storage->shouldReceive('disk')->with('local')->andReturn($disk);
 
         // Action mock
         $action = Mockery::mock(UnzipsDocsArchiveAction::class);
@@ -156,7 +151,7 @@ describe(InstallCommand::class, function (): void {
 
         // Bind to container
         app()->instance(Files::class, $files);
-        app()->instance(FilesystemManager::class, $storage);
+        app()->instance(StorageManager::class, $disk);
         app()->instance(UnzipsDocsArchiveAction::class, $action);
 
         // Act & assert

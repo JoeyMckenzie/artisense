@@ -82,6 +82,10 @@
             "@refactor:test",
             "@test",
             "@typos"
+        ],
+        "prep": [
+            "@fix",
+            "@ci"
         ]
     },
     "config": {

@@ -3,7 +3,11 @@
     "ignore": {
         "words": [
             "php",
-            "artisense"
+            "artisense",
+            "filepath"
+        ],
+        "paths": [
+            "tests"
         ]
     }
 }

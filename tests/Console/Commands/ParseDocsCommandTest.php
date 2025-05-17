@@ -44,7 +44,7 @@ describe(ParseDocsCommand::class, function (): void {
 
         // Mock Config Repository
         $config = Mockery::mock(Repository::class);
-        $config->shouldReceive('set')->withArgs(fn($arg): bool => isset($arg['database.connections.artisense']) &&
+        $config->shouldReceive('set')->withArgs(fn ($arg): bool => isset($arg['database.connections.artisense']) &&
             $arg['database.connections.artisense']['driver'] === 'sqlite' &&
             $arg['database.connections.artisense']['database'] === $fakeDbPath);
         $config->shouldReceive('string')->with('artisense.base_url')->andReturn('https://laravel.com/docs/');
@@ -54,7 +54,7 @@ describe(ParseDocsCommand::class, function (): void {
         $db->shouldReceive('statement')->with('DROP TABLE IF EXISTS docs')->once();
         $db->shouldReceive('statement')->with('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)')->once();
         $db->shouldReceive('table')->with('docs')->andReturnSelf();
-        $db->shouldReceive('insert')->withArgs(fn($arg): bool => isset($arg['title']) &&
+        $db->shouldReceive('insert')->withArgs(fn ($arg): bool => isset($arg['title']) &&
             isset($arg['heading']) &&
             isset($arg['markdown']) &&
             isset($arg['content']) &&
@@ -106,7 +106,7 @@ describe(ParseDocsCommand::class, function (): void {
 
         // Mock Config Repository
         $config = Mockery::mock(Repository::class);
-        $config->shouldReceive('set')->withArgs(fn($arg): bool => isset($arg['database.connections.artisense']));
+        $config->shouldReceive('set')->withArgs(fn ($arg): bool => isset($arg['database.connections.artisense']));
         $config->shouldReceive('string')->with('artisense.base_url')->andReturn('https://laravel.com/docs/');
 
         // Mock Database Connection
@@ -114,7 +114,7 @@ describe(ParseDocsCommand::class, function (): void {
         $db->shouldReceive('statement')->with('DROP TABLE IF EXISTS docs')->once();
         $db->shouldReceive('statement')->with('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)')->once();
         $db->shouldReceive('table')->with('docs')->andReturnSelf();
-        $db->shouldReceive('insert')->withArgs(fn($arg): bool => $arg['title'] === '[Untitled]' &&
+        $db->shouldReceive('insert')->withArgs(fn ($arg): bool => $arg['title'] === '[Untitled]' &&
             $arg['heading'] === '[Intro]')->once();
 
         // Mock Connection Resolver
@@ -161,7 +161,7 @@ describe(ParseDocsCommand::class, function (): void {
 
         // Mock Config Repository
         $config = Mockery::mock(Repository::class);
-        $config->shouldReceive('set')->withArgs(fn($arg): bool => isset($arg['database.connections.artisense']));
+        $config->shouldReceive('set')->withArgs(fn ($arg): bool => isset($arg['database.connections.artisense']));
 
         // Mock Database Connection
         $db = Mockery::mock(ConnectionInterface::class);

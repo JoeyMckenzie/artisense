@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Support;
 
-use Artisense\Contracts\Support\StorageManager;
+use Artisense\Contracts\StorageManager;
 
 final class DiskManager implements StorageManager
 {

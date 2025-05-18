@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+use Artisense\Enums\DocumentationVersion;
+
 return [
 
     /*
@@ -19,15 +21,15 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Documentation Base URL
+    | Documentation version
     |--------------------------------------------------------------------------
     |
-    | This value defines the base URL where your documentation is hosted.
-    | It is used to generate links to specific sections of the docs as
-    | needed by various features within the Artisense package.
+    | Specifies the version of the documentation to use, with both numbered.
+    | versions and master available. By default, the most recent numbered
+    | is used if no version is specified while attempting to download.
     |
     */
 
-    'base_url' => 'https://laravel.com/docs/12.x/',
+    'version' => DocumentationVersion::VERSION_12,
 
 ];

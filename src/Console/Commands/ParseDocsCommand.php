@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
-use Artisense\Contracts\Support\StorageManager;
+use Artisense\Contracts\StorageManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\ConnectionInterface;

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
-use Artisense\Artisense;
-use Artisense\Contracts\Actions\UnzipsDocsArchiveAction;
-use Artisense\Contracts\Support\StorageManager;
-use Artisense\Exceptions\FailedToUnzipArchiveException;
+use Artisense\Contracts\StorageManager;
+use Artisense\Enums\DocumentationVersion;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Filesystem\Filesystem as Files;
 use Illuminate\Http\Client\Factory as Http;
+use ZipArchive;
 
 final class InstallCommand extends Command
 {
@@ -18,16 +18,21 @@ final class InstallCommand extends Command
 
     public $description = 'Installs and initializes Artisense by downloading Laravel documentation.';
 
+    private Repository $config;
+
     public function handle(
-        UnzipsDocsArchiveAction $action,
         Files $files,
         Http $http,
         StorageManager $storage,
+        Repository $config
     ): int {
+        $this->config = $config;
+        $version = $this->getVersion();
         $this->info('🔧 Installing Artisense...');
         $this->line('Fetching Laravel docs from GitHub...');
 
-        $response = $http->get(Artisense::GITHUB_SOURCE_ZIP);
+        $zipUrl = $version->getZipUrl();
+        $response = $http->get($zipUrl);
 
         if (! $response->ok()) {
             $this->error('Failed to download docs from GitHub.');
@@ -42,21 +47,15 @@ final class InstallCommand extends Command
 
         $extractedZipPath = $storage->path('laravel-docs.zip');
         $extractPath = $storage->getBasePath();
-
-        try {
-            $action->handle($extractedZipPath, $extractPath);
-        } catch (FailedToUnzipArchiveException $e) {
-            $this->error('Failed to unzip docs: '.$e->getMessage());
-
-            return self::FAILURE;
-        }
+        $this->unzipDocsFile($extractedZipPath, $extractPath);
 
         $this->line('Moving docs to subfolder...');
 
-        $markdownFiles = $storage->files('docs-master');
+        $extractedFolder = pathinfo($version->getExtractedFileName(), PATHINFO_FILENAME);
+        $markdownFiles = $storage->files($extractedFolder);
 
         foreach ($markdownFiles as $file) {
-            $source = $storage->path("docs-master/$file");
+            $source = $storage->path("$extractedFolder/$file");
             $target = $storage->path('docs/'.basename($file));
             $files->move($source, $target);
         }
@@ -64,10 +63,59 @@ final class InstallCommand extends Command
         $this->line('Removing temporary files...');
 
         $storage->delete('laravel-docs.zip');
-        $storage->deleteDirectory('docs-master');
+        $storage->deleteDirectory($extractedFolder);
 
         $this->info('✅ Laravel docs downloaded and ready!');
 
         return self::SUCCESS;
+    }
+
+    private function getVersion(): DocumentationVersion
+    {
+        $value = $this->config->get('artisense.version');
+
+        if ($value instanceof DocumentationVersion) {
+            return $value;
+        }
+
+        if ($value === null) {
+            return self::getDefaultVersion();
+        }
+
+        if (! is_string($value)) {
+            $this->error("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
+
+            exit(self::FAILURE);
+        }
+
+        assert(is_string($value));
+        $version = DocumentationVersion::tryFrom($value);
+
+        if ($version === null) {
+            return self::getDefaultVersion();
+        }
+
+        return $version;
+    }
+
+    private function getDefaultVersion(): DocumentationVersion
+    {
+        $this->line('No documentation version specified, using lastest version (12.x) by default.');
+
+        return DocumentationVersion::VERSION_12;
+    }
+
+    private function unzipDocsFile(string $extractedZipPath, string $extractPath): void
+    {
+        $zip = new ZipArchive;
+
+        if ($zip->open($extractedZipPath) !== true) {
+            $this->error('Failed to unzip docs.');
+
+            exit(self::FAILURE);
+        }
+
+        $zip->extractTo($extractPath);
+        $zip->close();
     }
 }

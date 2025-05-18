@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Contracts\Support;
+namespace Artisense\Contracts;
 
 interface StorageManager
 {

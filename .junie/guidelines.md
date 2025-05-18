@@ -5,7 +5,8 @@
 - Prefer to keep tests small in scope, testing a specific behavior
 - Tests should be written using the Pest framework
 - All tests should use the `covers()` within them to allow for code coverage metrics
-- All tests should be wrapped within a `describe()` block, followed by subsequent `it()` blocks like the following example:
+- All tests should be wrapped within a `describe()` block, followed by subsequent `it()` blocks like the following
+  example:
 
 ```php
 covers(Calculator::class);
@@ -29,14 +30,21 @@ describe(ClassUnderTest::class, function (): void {
 - Use PHP 8.3+ features where appropriate
 - Follow Laravel conventions and best practices
 - Implement a default Pint configuration for code styling
-- Focus on creating code that provides excellent developer experience (DX), better autocompletion, type safety, and comprehensive docblocks
+- Focus on creating code that provides excellent developer experience (DX), better autocompletion, type safety, and
+  comprehensive docblocks
 - File names: Use kebab-case (e.g., my-class-file.php)
 - Class and Enum names: Use PascalCase (e.g., MyClass)
 - Method and variable names: Use camelCase (e.g., myMethod)
 - Constants and Enum Cases names: Use SCREAMING_SNAKE_CASE (e.g., MY_CONSTANT)
+- Use strict types everywhere and all the time
+- Always assume max level strictness for PHPStan
+- Use `composer run lint` to check for any PHPStan errors
+- Use appropriate `@var` declarations and `assert()` to appease PHPStan
+- Do not modify any values within `phpstan.neon` to fix errors
 
 **Important Notes**:
 
-
-- Remember to adhere to the specified coding standards, development guidelines, and Laravel best practices throughout your plan and code samples
-- Ensure that your response is detailed, well-structured, and provides a clear roadmap for developing the Laravel package based on the given project description and requirements
+- Remember to adhere to the specified coding standards, development guidelines, and Laravel best practices throughout
+  your plan and code samples
+- Ensure that your response is detailed, well-structured, and provides a clear roadmap for developing the Laravel
+  package based on the given project description and requirements

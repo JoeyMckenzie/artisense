@@ -26,10 +26,16 @@ final class InstallCommand extends Command
         StorageManager $storage,
         Repository $config
     ): int {
+        $this->info('🔧 Installing Artisense...');
+
         $this->config = $config;
         $version = $this->getVersion();
-        $this->info('🔧 Installing Artisense...');
-        $this->line('Fetching Laravel docs from GitHub...');
+
+        if ($version === null) {
+            return self::FAILURE;
+        }
+
+        $this->line("Using version $version->value, fetching Laravel docs from GitHub...");
 
         $zipUrl = $version->getZipUrl();
         $response = $http->get($zipUrl);
@@ -47,7 +53,11 @@ final class InstallCommand extends Command
 
         $extractedZipPath = $storage->path('laravel-docs.zip');
         $extractPath = $storage->getBasePath();
-        $this->unzipDocsFile($extractedZipPath, $extractPath);
+        $resultCode = $this->unzipDocsFile($extractedZipPath, $extractPath);
+
+        if ($resultCode === self::FAILURE) {
+            return self::FAILURE;
+        }
 
         $this->line('Moving docs to subfolder...');
 
@@ -70,7 +80,7 @@ final class InstallCommand extends Command
         return self::SUCCESS;
     }
 
-    private function getVersion(): DocumentationVersion
+    private function getVersion(): ?DocumentationVersion
     {
         $value = $this->config->get('artisense.version');
 
@@ -79,43 +89,42 @@ final class InstallCommand extends Command
         }
 
         if ($value === null) {
-            return self::getDefaultVersion();
+            $this->error('Documentation version must be configured in your config file.');
+
+            return null;
         }
 
         if (! is_string($value)) {
             $this->error("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
 
-            exit(self::FAILURE);
+            return null;
         }
 
         assert(is_string($value));
         $version = DocumentationVersion::tryFrom($value);
 
         if ($version === null) {
-            return self::getDefaultVersion();
+            $this->error("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
+
+            return null;
         }
 
         return $version;
     }
 
-    private function getDefaultVersion(): DocumentationVersion
-    {
-        $this->line('No documentation version specified, using lastest version (12.x) by default.');
-
-        return DocumentationVersion::VERSION_12;
-    }
-
-    private function unzipDocsFile(string $extractedZipPath, string $extractPath): void
+    private function unzipDocsFile(string $extractedZipPath, string $extractPath): int
     {
         $zip = new ZipArchive;
 
         if ($zip->open($extractedZipPath) !== true) {
             $this->error('Failed to unzip docs.');
 
-            exit(self::FAILURE);
+            return self::FAILURE;
         }
 
         $zip->extractTo($extractPath);
         $zip->close();
+
+        return self::SUCCESS;
     }
 }

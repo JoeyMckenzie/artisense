@@ -1,4 +1,23 @@
-1. **Testing Information**:
+1. **Additional Development Information**:
+
+- Use PHP 8.3+ features where appropriate
+- Follow Laravel conventions and best practices
+- Implement a default Pint configuration for code styling
+- Focus on creating code that provides excellent developer experience (DX), better autocompletion, type safety, and
+  comprehensive docblocks
+- File names: Use kebab-case (e.g., my-class-file.php)
+- Class and Enum names: Use PascalCase (e.g., MyClass)
+- Method and variable names: Use camelCase (e.g., myMethod)
+- Constants and Enum Cases names: Use SCREAMING_SNAKE_CASE (e.g., MY_CONSTANT)
+- Use strict types everywhere and all the time
+- Always assume max level strictness for PHPStan
+- Use `composer run lint` to check for any PHPStan errors
+- Use appropriate `@var` declarations and `assert()` to appease PHPStan
+- Do not modify any values within `phpstan.neon.dist` to fix errors
+- Prefer constructor injection to facade usage for source code
+- You may use facades within test code for ease of use
+
+2. **Testing Information**:
 
 - Test should be run with the command `composer run test`
 - Follow the Arrange-Act-Assert pattern when writing all tests
@@ -24,23 +43,6 @@ describe(ClassUnderTest::class, function (): void {
     });
 });
 ```
-
-2. **Additional Development Information**:
-
-- Use PHP 8.3+ features where appropriate
-- Follow Laravel conventions and best practices
-- Implement a default Pint configuration for code styling
-- Focus on creating code that provides excellent developer experience (DX), better autocompletion, type safety, and
-  comprehensive docblocks
-- File names: Use kebab-case (e.g., my-class-file.php)
-- Class and Enum names: Use PascalCase (e.g., MyClass)
-- Method and variable names: Use camelCase (e.g., myMethod)
-- Constants and Enum Cases names: Use SCREAMING_SNAKE_CASE (e.g., MY_CONSTANT)
-- Use strict types everywhere and all the time
-- Always assume max level strictness for PHPStan
-- Use `composer run lint` to check for any PHPStan errors
-- Use appropriate `@var` declarations and `assert()` to appease PHPStan
-- Do not modify any values within `phpstan.neon.dist` to fix errors
 
 **Important Notes**:
 

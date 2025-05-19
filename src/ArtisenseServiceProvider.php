@@ -6,8 +6,6 @@ namespace Artisense;
 
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Console\Commands\ParseDocsCommand;
-use Artisense\Contracts\StorageManager;
-use Artisense\Support\DiskManager;
 use Illuminate\Support\ServiceProvider;
 use Override;
 
@@ -33,7 +31,5 @@ final class ArtisenseServiceProvider extends ServiceProvider
                 __DIR__.'/../config/artisense.php' => config_path('artisense.php'),
             ], 'artisense-config');
         }
-
-        $this->app->bind(StorageManager::class, DiskManager::class);
     }
 }

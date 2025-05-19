@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
-use Artisense\Contracts\StorageManager;
-use Artisense\Enums\DocumentationVersion;
+use Artisense\Exceptions\DocumentationVersionException;
+use Artisense\Support\DiskManager;
+use Artisense\Support\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Filesystem\Filesystem as Files;
@@ -23,15 +24,19 @@ final class DownloadDocsCommand extends Command
     public function handle(
         Files $files,
         Http $http,
-        StorageManager $storage,
+        DiskManager $storage,
+        VersionManager $versionManager,
         Repository $config
     ): int {
         $this->info('🔧 Downloading documents...');
 
         $this->config = $config;
-        $version = $this->getVersion();
 
-        if ($version === null) {
+        try {
+            $version = $versionManager->getVersion();
+        } catch (DocumentationVersionException $e) {
+            $this->error($e->getMessage());
+
             return self::FAILURE;
         }
 
@@ -66,7 +71,7 @@ final class DownloadDocsCommand extends Command
 
         foreach ($markdownFiles as $file) {
             $source = $storage->path("$extractedFolder/$file");
-            $target = $storage->path('docs/'.basename($file));
+            $target = $storage->path('docs/'.basename((string) $file));
             $files->move($source, $target);
         }
 
@@ -78,38 +83,6 @@ final class DownloadDocsCommand extends Command
         $this->info('✅ Laravel docs downloaded and ready!');
 
         return self::SUCCESS;
-    }
-
-    private function getVersion(): ?DocumentationVersion
-    {
-        $value = $this->config->get('artisense.version');
-
-        if ($value instanceof DocumentationVersion) {
-            return $value;
-        }
-
-        if ($value === null) {
-            $this->error('Documentation version must be configured in your config file.');
-
-            return null;
-        }
-
-        if (! is_string($value)) {
-            $this->error("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
-
-            return null;
-        }
-
-        assert(is_string($value));
-        $version = DocumentationVersion::tryFrom($value);
-
-        if ($version === null) {
-            $this->error("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
-
-            return null;
-        }
-
-        return $version;
     }
 
     private function unzipDocsFile(string $extractedZipPath, string $extractPath): int

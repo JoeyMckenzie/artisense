@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Support;
 
-use Artisense\Contracts\StorageManager;
-
-final class DiskManager implements StorageManager
+final class DiskManager
 {
     public function ensureDirectoriesExist(): void
     {

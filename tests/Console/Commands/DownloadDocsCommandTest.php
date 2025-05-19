@@ -7,6 +7,7 @@ namespace Artisense\Tests\Console\Commands;
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Enums\DocumentationVersion;
 use Illuminate\Filesystem\Filesystem as Files;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Console\Command\Command;
 
@@ -83,7 +84,7 @@ describe(DownloadDocsCommand::class, function (): void {
         ]);
 
         // Mock the config to return MASTER version
-        config(['artisense.version' => DocumentationVersion::MASTER]);
+        Config::set('artisense.version', DocumentationVersion::MASTER);
 
         // Act & assert
         $this->artisan(DownloadDocsCommand::class)

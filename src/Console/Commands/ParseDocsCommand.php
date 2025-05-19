@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
-use Artisense\Contracts\StorageManager;
+use Artisense\Support\DiskManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\Finder\SplFileInfo;
@@ -28,8 +26,10 @@ final class ParseDocsCommand extends Command
 
     private Filesystem $files;
 
+    private Repository $config;
+
     public function handle(
-        StorageManager $disk,
+        DiskManager $disk,
         Filesystem $files,
         Repository $config,
         ConnectionResolverInterface $resolver
@@ -50,7 +50,8 @@ final class ParseDocsCommand extends Command
         }
 
         // Set up SQLite connection
-        $config->set([
+        $this->config = $config;
+        $this->config->set([
             'database.connections.artisense' => [
                 'driver' => 'sqlite',
                 'database' => $dbPath,
@@ -138,7 +139,8 @@ final class ParseDocsCommand extends Command
     private function createEntry(string $title, string $heading, string $content, string $path): void
     {
         $link = sprintf('%s#%s', str_replace('.md', '', $path), $this->slugify($heading));
-        $baseUrl = Config::string('artisense.base_url');
+        $version = $this->config->get('artisense.version');
+        $baseUrl = $this->config->string('artisense.base_url');
 
         if (! Str::endsWith($baseUrl, '/')) {
             $baseUrl = sprintf('%s/', $baseUrl);

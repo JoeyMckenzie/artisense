@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Artisense\Tests\Console\Commands;
 
-use Artisense\Console\Commands\InstallCommand;
+use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Enums\DocumentationVersion;
 use Illuminate\Filesystem\Filesystem as Files;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Console\Command\Command;
 
-covers(InstallCommand::class);
+covers(DownloadDocsCommand::class);
 
-describe(InstallCommand::class, function (): void {
+describe(DownloadDocsCommand::class, function (): void {
     beforeEach(function (): void {
         Http::preventStrayRequests();
         $this->files = new Files();
@@ -36,8 +36,8 @@ describe(InstallCommand::class, function (): void {
         ]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->expectsOutput('Using version 12.x, fetching Laravel docs from GitHub...')
             ->doesntExpectOutput('Failed to download docs from GitHub.')
             ->doesntExpectOutputToContain('Failed to unzip docs: ')
@@ -60,8 +60,8 @@ describe(InstallCommand::class, function (): void {
         ]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->expectsOutput('Using version 12.x, fetching Laravel docs from GitHub...')
             ->expectsOutput('Failed to download docs from GitHub.')
             ->doesntExpectOutputToContain('Failed to unzip docs: ')
@@ -86,8 +86,8 @@ describe(InstallCommand::class, function (): void {
         config(['artisense.version' => DocumentationVersion::MASTER]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->expectsOutput('Using version master, fetching Laravel docs from GitHub...')
             ->doesntExpectOutput('Failed to download docs from GitHub.')
             ->expectsOutput('Unzipping docs...')
@@ -116,8 +116,8 @@ describe(InstallCommand::class, function (): void {
         ]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->expectsOutput('Using version 12.x, fetching Laravel docs from GitHub...')
             ->doesntExpectOutput('Failed to download docs from GitHub.')
             ->expectsOutput('Unzipping docs...')
@@ -134,8 +134,8 @@ describe(InstallCommand::class, function (): void {
         config(['artisense.version' => 'invalid-version']);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->doesntExpectOutput('No documentation version specified, using lastest version (12.x) by default.')
             ->doesntExpectOutput('Using version 12.x, fetching Laravel docs from GitHub......')
             ->doesntExpectOutput('Failed to download docs from GitHub.')
@@ -161,8 +161,8 @@ describe(InstallCommand::class, function (): void {
         config(['artisense.version' => 123]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->expectsOutput("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
             ->assertExitCode(Command::FAILURE);
 
@@ -179,8 +179,8 @@ describe(InstallCommand::class, function (): void {
         ]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->expectsOutput('Using version 12.x, fetching Laravel docs from GitHub...')
             ->doesntExpectOutput('Failed to download docs from GitHub.')
             ->expectsOutput('Unzipping docs...')
@@ -198,8 +198,8 @@ describe(InstallCommand::class, function (): void {
         config(['artisense.version' => null]);
 
         // Act & assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing Artisense...')
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
             ->doesntExpectOutput('No documentation version specified, using lastest version (12.x) by default.')
             ->doesntExpectOutput('Using version 12.x, fetching Laravel docs from GitHub......')
             ->doesntExpectOutput('Failed to download docs from GitHub.')

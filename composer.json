@@ -34,7 +34,8 @@
         "phpstan/extension-installer": "^1.4.3",
         "phpstan/phpstan-deprecation-rules": "^2.0.3",
         "phpstan/phpstan-phpunit": "^2.0.6",
-        "rector/rector": "^2.0"
+        "rector/rector": "^2.0",
+        "ext-pdo": "*"
     },
     "autoload": {
         "psr-4": {

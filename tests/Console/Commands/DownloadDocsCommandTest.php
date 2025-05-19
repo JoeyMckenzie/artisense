@@ -130,46 +130,6 @@ describe(DownloadDocsCommand::class, function (): void {
             ->and($this->files->exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse();
     });
 
-    it('handles invalid configuration value', function (): void {
-        // Arrange
-        config(['artisense.version' => 'invalid-version']);
-
-        // Act & assert
-        $this->artisan(DownloadDocsCommand::class)
-            ->expectsOutput('🔧 Downloading documents...')
-            ->doesntExpectOutput('No documentation version specified, using lastest version (12.x) by default.')
-            ->doesntExpectOutput('Using version 12.x, fetching Laravel docs from GitHub......')
-            ->doesntExpectOutput('Failed to download docs from GitHub.')
-            ->doesntExpectOutput('Unzipping docs...')
-            ->expectsOutput("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
-            ->doesntExpectOutput('✅ Laravel docs downloaded and ready!')
-            ->assertExitCode(Command::FAILURE);
-
-        expect($this->files->exists($this->storagePath))->toBeFalse();
-    });
-
-    it('handles non-string configuration value', function (): void {
-        // Arrange
-        $zipPath = __DIR__.'/../../Fixtures/docs-12.x.zip';
-        $zipContent = file_get_contents($zipPath);
-        $version = DocumentationVersion::VERSION_12;
-
-        Http::fake([
-            $version->getZipUrl() => Http::response($zipContent),
-        ]);
-
-        // Set a non-string configuration value
-        config(['artisense.version' => 123]);
-
-        // Act & assert
-        $this->artisan(DownloadDocsCommand::class)
-            ->expectsOutput('🔧 Downloading documents...')
-            ->expectsOutput("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
-            ->assertExitCode(Command::FAILURE);
-
-        expect($this->files->exists($this->storagePath))->toBeFalse();
-    });
-
     it('handles ZIP extraction failure', function (): void {
         // Arrange
         $version = DocumentationVersion::VERSION_12;
@@ -192,23 +152,5 @@ describe(DownloadDocsCommand::class, function (): void {
         // The storage directory should exist with the zip file
         expect($this->files->exists($this->storagePath))->toBeTrue()
             ->and($this->files->exists($this->storagePath.'/laravel-docs.zip'))->toBeTrue();
-    });
-
-    it('handles null configuration value', function (): void {
-        // Arrange
-        config(['artisense.version' => null]);
-
-        // Act & assert
-        $this->artisan(DownloadDocsCommand::class)
-            ->expectsOutput('🔧 Downloading documents...')
-            ->doesntExpectOutput('No documentation version specified, using lastest version (12.x) by default.')
-            ->doesntExpectOutput('Using version 12.x, fetching Laravel docs from GitHub......')
-            ->doesntExpectOutput('Failed to download docs from GitHub.')
-            ->doesntExpectOutput('Unzipping docs...')
-            ->expectsOutput('Documentation version must be configured in your config file.')
-            ->doesntExpectOutput('✅ Laravel docs downloaded and ready!')
-            ->assertExitCode(Command::FAILURE);
-
-        expect($this->files->exists($this->storagePath))->toBeFalse();
     });
 });

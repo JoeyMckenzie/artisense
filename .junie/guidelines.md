@@ -5,7 +5,7 @@
 - Implement a default Pint configuration for code styling
 - Focus on creating code that provides excellent developer experience (DX), better autocompletion, type safety, and
   comprehensive docblocks
-- File names: Use kebab-case (e.g., my-class-file.php)
+- File names: Use PascalCase (e.g., MyClass.php)
 - Class and Enum names: Use PascalCase (e.g., MyClass)
 - Method and variable names: Use camelCase (e.g., myMethod)
 - Constants and Enum Cases names: Use SCREAMING_SNAKE_CASE (e.g., MY_CONSTANT)

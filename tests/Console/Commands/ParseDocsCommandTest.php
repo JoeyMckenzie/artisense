@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\ParseDocsCommand;
+use Artisense\Enums\DocumentationVersion;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\Config;
 use PDO;
@@ -26,8 +27,7 @@ describe(ParseDocsCommand::class, function (): void {
             $this->storagePath.'/docs/artisan.md'
         );
 
-        // Set base URL for links
-        Config::set('artisense.base_url', 'https://laravel.com/docs');
+        Config::set('artisense.version', DocumentationVersion::VERSION_12);
     });
 
     afterEach(function (): void {
@@ -60,7 +60,7 @@ describe(ParseDocsCommand::class, function (): void {
         $row = $statement->fetch(PDO::FETCH_ASSOC);
         expect($row)->not->toBeNull();
         expect($row['title'])->toBe('Artisan Console');
-        expect($row['link'])->toContain('https://laravel.com/docs/artisan#artisan-console');
+        expect($row['link'])->toContain('https://laravel.com/docs/12.x/artisan#artisan-console');
     });
 
     it('handles files without headings', function (): void {

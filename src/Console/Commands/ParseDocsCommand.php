@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\Support\DiskManager;
+use Artisense\Support\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;
-use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -28,11 +28,14 @@ final class ParseDocsCommand extends Command
 
     private Repository $config;
 
+    private VersionManager $versionManager;
+
     public function handle(
         DiskManager $disk,
         Filesystem $files,
         Repository $config,
-        ConnectionResolverInterface $resolver
+        ConnectionResolverInterface $resolver,
+        VersionManager $versionManager
     ): int {
         $this->info('🔍 Parsing Laravel docs...');
 
@@ -58,6 +61,8 @@ final class ParseDocsCommand extends Command
                 'prefix' => '',
             ],
         ]);
+
+        $this->versionManager = $versionManager;
 
         $this->db = $resolver->connection('artisense');
         $this->db->statement('DROP TABLE IF EXISTS docs');
@@ -139,12 +144,8 @@ final class ParseDocsCommand extends Command
     private function createEntry(string $title, string $heading, string $content, string $path): void
     {
         $link = sprintf('%s#%s', str_replace('.md', '', $path), $this->slugify($heading));
-        $version = $this->config->get('artisense.version');
-        $baseUrl = $this->config->string('artisense.base_url');
-
-        if (! Str::endsWith($baseUrl, '/')) {
-            $baseUrl = sprintf('%s/', $baseUrl);
-        }
+        $version = $this->versionManager->getVersion();
+        $baseUrl = $version->getDocumentationBaseUrl();
 
         $this->db->table('docs')->insert([
             'title' => $title,

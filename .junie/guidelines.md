@@ -1,4 +1,4 @@
-2. **Testing Information**:
+1. **Testing Information**:
 
 - Test should be run with the command `composer run test`
 - Follow the Arrange-Act-Assert pattern when writing all tests
@@ -25,7 +25,7 @@ describe(ClassUnderTest::class, function (): void {
 });
 ```
 
-3. **Additional Development Information**:
+2. **Additional Development Information**:
 
 - Use PHP 8.3+ features where appropriate
 - Follow Laravel conventions and best practices
@@ -40,11 +40,11 @@ describe(ClassUnderTest::class, function (): void {
 - Always assume max level strictness for PHPStan
 - Use `composer run lint` to check for any PHPStan errors
 - Use appropriate `@var` declarations and `assert()` to appease PHPStan
-- Do not modify any values within `phpstan.neon` to fix errors
+- Do not modify any values within `phpstan.neon.dist` to fix errors
 
 **Important Notes**:
 
-- Remember to adhere to the specified coding standards, development guidelines, and Laravel best practices throughout
-  your plan and code samples
-- Ensure that your response is detailed, well-structured, and provides a clear roadmap for developing the Laravel
-  package based on the given project description and requirements
+- Remember to adhere to the specified coding standards and development guidelines
+- Laravel best practices throughout your plan and code samples
+- Ensure that your response is detailed and well-structured
+- Ensure code provides a clear roadmap for developing the Laravel package based on the description and requirements

@@ -18,7 +18,7 @@ describe(SeedDocsCommand::class, function (): void {
     beforeEach(function (): void {
         $uniqueKey = 'artisense/test-'.getmypid();
         $this->storagePath = storage_path($uniqueKey);
-        $this->app->bind(DiskManager::class, fn (): \Artisense\Support\DiskManager => new DiskManager($uniqueKey));
+        $this->app->bind(DiskManager::class, fn (): DiskManager => new DiskManager($uniqueKey));
 
         File::ensureDirectoryExists($this->storagePath.'/docs');
         File::copy(__DIR__.'/../../Fixtures/artisan.md', $this->storagePath.'/docs/artisan.md');

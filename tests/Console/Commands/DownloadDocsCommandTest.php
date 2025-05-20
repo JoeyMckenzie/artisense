@@ -19,7 +19,7 @@ describe(DownloadDocsCommand::class, function (): void {
         Http::preventStrayRequests();
         $uniqueKey = 'artisense/test-'.uniqid();
         $this->storagePath = storage_path($uniqueKey);
-        $this->app->bind(DiskManager::class, fn (): \Artisense\Support\DiskManager => new DiskManager($uniqueKey));
+        $this->app->bind(DiskManager::class, fn (): DiskManager => new DiskManager($uniqueKey));
     });
 
     afterEach(function (): void {

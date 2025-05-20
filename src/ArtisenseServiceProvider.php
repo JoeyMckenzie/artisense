@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Artisense;
 
 use Artisense\Console\Commands\DownloadDocsCommand;
+use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\SeedDocsCommand;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -23,6 +24,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                InstallCommand::class,
                 DownloadDocsCommand::class,
                 SeedDocsCommand::class,
             ]);

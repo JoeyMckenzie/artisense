@@ -15,7 +15,7 @@ final class InstallCommand extends Command
 
     public function handle(Kernel $artisan): int
     {
-        $this->info('🔧 Install Artisense...');
+        $this->info('🔧 Installing artisense...');
 
         $artisan->call(DownloadDocsCommand::class);
         $artisan->call(SeedDocsCommand::class);

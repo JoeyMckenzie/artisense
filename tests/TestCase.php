@@ -11,8 +11,6 @@ use Override;
 
 class TestCase extends Orchestra
 {
-    private readonly string $storagePath;
-
     public function getEnvironmentSetUp($app)
     {
         config()->set('database.default', 'testing');

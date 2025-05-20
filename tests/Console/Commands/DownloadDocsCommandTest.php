@@ -6,8 +6,9 @@ namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Enums\DocumentationVersion;
-use Illuminate\Filesystem\Filesystem as Files;
+use Artisense\Support\DiskManager;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
 use Symfony\Component\Console\Command\Command;
 
@@ -16,14 +17,13 @@ covers(DownloadDocsCommand::class);
 describe(DownloadDocsCommand::class, function (): void {
     beforeEach(function (): void {
         Http::preventStrayRequests();
-        $this->files = new Files();
-        $this->storagePath = storage_path('/artisense');
-        $this->files->deleteDirectory($this->storagePath);
-        expect($this->files->exists($this->storagePath))->toBeFalse();
+        $uniqueKey = 'artisense/test-'.uniqid();
+        $this->storagePath = storage_path($uniqueKey);
+        $this->app->bind(DiskManager::class, fn (): \Artisense\Support\DiskManager => new DiskManager($uniqueKey));
     });
 
     afterEach(function (): void {
-        $this->files->deleteDirectory($this->storagePath);
+        File::deleteDirectory($this->storagePath);
     });
 
     it('downloads and installs Laravel docs, returning successful code', function (): void {
@@ -46,10 +46,10 @@ describe(DownloadDocsCommand::class, function (): void {
             ->expectsOutput('✅ Laravel docs downloaded and ready!')
             ->assertExitCode(Command::SUCCESS);
 
-        expect($this->files->exists($this->storagePath.'/docs'))->toBeTrue()
-            ->and($this->files->isEmptyDirectory($this->storagePath.'/docs'))->toBeFalse()
-            ->and($this->files->exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse()
-            ->and($this->files->exists($this->storagePath.'/docs-12.x'))->toBeFalse();
+        expect(File::exists($this->storagePath.'/docs'))->toBeTrue()
+            ->and(File::isEmptyDirectory($this->storagePath.'/docs'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/docs-12.x'))->toBeFalse();
     });
 
     it('returns failure code if HTTP retrieval fails', function (): void {
@@ -70,7 +70,7 @@ describe(DownloadDocsCommand::class, function (): void {
             ->doesntExpectOutput('✅ Laravel docs downloaded and ready!')
             ->assertExitCode(Command::FAILURE);
 
-        expect($this->files->exists($this->storagePath))->toBeFalse();
+        expect(File::exists($this->storagePath))->toBeFalse();
     });
 
     it('downloads and installs docs with a different version', function (): void {
@@ -95,10 +95,10 @@ describe(DownloadDocsCommand::class, function (): void {
             ->expectsOutput('✅ Laravel docs downloaded and ready!')
             ->assertExitCode(Command::SUCCESS);
 
-        expect($this->files->exists($this->storagePath.'/docs'))->toBeTrue()
-            ->and($this->files->isEmptyDirectory($this->storagePath.'/docs'))->toBeFalse()
-            ->and($this->files->exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse()
-            ->and($this->files->exists($this->storagePath.'/docs-master'))->toBeFalse();
+        expect(File::exists($this->storagePath.'/docs'))->toBeTrue()
+            ->and(File::isEmptyDirectory($this->storagePath.'/docs'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/docs-master'))->toBeFalse();
     });
 
     it('handles pre-existing storage directory', function (): void {
@@ -108,9 +108,9 @@ describe(DownloadDocsCommand::class, function (): void {
         $version = DocumentationVersion::VERSION_12;
 
         // Create the storage directory before running the command
-        $this->files->makeDirectory($this->storagePath, 0755, true);
-        $this->files->makeDirectory($this->storagePath.'/docs', 0755, true);
-        expect($this->files->exists($this->storagePath))->toBeTrue();
+        File::makeDirectory($this->storagePath, 0755, true);
+        File::makeDirectory($this->storagePath.'/docs', 0755, true);
+        expect(File::exists($this->storagePath))->toBeTrue();
 
         Http::fake([
             $version->getZipUrl() => Http::response($zipContent),
@@ -125,9 +125,9 @@ describe(DownloadDocsCommand::class, function (): void {
             ->expectsOutput('✅ Laravel docs downloaded and ready!')
             ->assertExitCode(Command::SUCCESS);
 
-        expect($this->files->exists($this->storagePath.'/docs'))->toBeTrue()
-            ->and($this->files->isEmptyDirectory($this->storagePath.'/docs'))->toBeFalse()
-            ->and($this->files->exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse();
+        expect(File::exists($this->storagePath.'/docs'))->toBeTrue()
+            ->and(File::isEmptyDirectory($this->storagePath.'/docs'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse();
     });
 
     it('handles ZIP extraction failure', function (): void {
@@ -150,7 +150,7 @@ describe(DownloadDocsCommand::class, function (): void {
             ->assertExitCode(Command::FAILURE);
 
         // The storage directory should exist with the zip file
-        expect($this->files->exists($this->storagePath))->toBeTrue()
-            ->and($this->files->exists($this->storagePath.'/laravel-docs.zip'))->toBeTrue();
+        expect(File::exists($this->storagePath))->toBeTrue()
+            ->and(File::exists($this->storagePath.'/laravel-docs.zip'))->toBeTrue();
     });
 });

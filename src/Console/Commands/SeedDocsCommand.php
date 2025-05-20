@@ -14,9 +14,9 @@ use Illuminate\Filesystem\Filesystem;
 use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\Finder\SplFileInfo;
 
-final class ParseDocsCommand extends Command
+final class SeedDocsCommand extends Command
 {
-    public $signature = 'artisense:parse-docs';
+    public $signature = 'artisense:seed-docs';
 
     public $description = 'Parses and seeds the database with Laravel documentation.';
 
@@ -25,8 +25,6 @@ final class ParseDocsCommand extends Command
     private ConnectionInterface $db;
 
     private Filesystem $files;
-
-    private Repository $config;
 
     private VersionManager $versionManager;
 
@@ -53,8 +51,8 @@ final class ParseDocsCommand extends Command
         }
 
         // Set up SQLite connection
-        $this->config = $config;
-        $this->config->set([
+        $config1 = $config;
+        $config1->set([
             'database.connections.artisense' => [
                 'driver' => 'sqlite',
                 'database' => $dbPath,
@@ -68,7 +66,10 @@ final class ParseDocsCommand extends Command
         $this->db->statement('DROP TABLE IF EXISTS docs');
         $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
 
-        $docFiles = $this->files->allFiles($docsPath);
+        // Only care about markdown files for now, no need to process anything else
+        $docFiles = collect($this->files->allFiles($docsPath))
+            ->filter(fn (SplFileInfo $file) => $file->isFile())
+            ->filter(fn (SplFileInfo $file): bool => $file->getExtension() === 'md');
         $this->converter = new CommonMarkConverter();
 
         $this->line(sprintf('Found %d docs files...', count($docFiles)));
@@ -84,10 +85,6 @@ final class ParseDocsCommand extends Command
 
     private function processMarkdownDocument(SplFileInfo $file): void
     {
-        if ($file->getExtension() !== 'md') {
-            return;
-        }
-
         $path = $file->getRelativePathname();
         $raw = $this->files->get($file->getRealPath());
 

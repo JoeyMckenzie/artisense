@@ -4,13 +4,23 @@ declare(strict_types=1);
 
 namespace Artisense\Support;
 
-final class DiskManager
+/**
+ * @internal
+ */
+final readonly class DiskManager
 {
+    private string $storageKey;
+
+    public function __construct(?string $storageKey)
+    {
+        $this->storageKey = $storageKey ?? 'artisense';
+    }
+
     public function ensureDirectoriesExist(): void
     {
         $paths = [
-            storage_path($this->getStorageKey()),
-            storage_path(sprintf('%s/docs', $this->getStorageKey())),
+            storage_path($this->storageKey),
+            storage_path(sprintf('%s/docs', $this->storageKey)),
         ];
 
         foreach ($paths as $path) {
@@ -20,22 +30,20 @@ final class DiskManager
         }
     }
 
-    public function getStorageKey(): string
-    {
-        return 'artisense';
-    }
-
     public function put(string $filepath, string $contents): void
     {
-        $filepath = sprintf('%s/%s', $this->getStorageKey(), $filepath);
+        $filepath = sprintf('%s/%s', $this->storageKey, $filepath);
         file_put_contents(storage_path($filepath), $contents);
     }
 
     public function getBasePath(): string
     {
-        return storage_path($this->getStorageKey());
+        return storage_path($this->storageKey);
     }
 
+    /**
+     * @return string[]
+     */
     public function files(string $filepath): array
     {
         $directory = $this->path($filepath);
@@ -45,7 +53,7 @@ final class DiskManager
 
     public function path(string $filepath): string
     {
-        $path = sprintf('%s/%s', $this->getStorageKey(), $filepath);
+        $path = sprintf('%s/%s', $this->storageKey, $filepath);
 
         return storage_path($path);
     }

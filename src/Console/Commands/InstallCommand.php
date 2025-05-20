@@ -18,7 +18,7 @@ final class InstallCommand extends Command
         $this->info('🔧 Install Artisense...');
 
         $artisan->call(DownloadDocsCommand::class);
-        $artisan->call(ParseDocsCommand::class);
+        $artisan->call(SeedDocsCommand::class);
 
         $this->info('✅ Laravel docs downloaded and ready!');
 

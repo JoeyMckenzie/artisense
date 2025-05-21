@@ -84,8 +84,4 @@ describe(VersionManager::class, function (): void {
         expect(fn () => $this->versionManager->getVersion())
             ->toThrow(DocumentationVersionException::class, "Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
     });
-
-    afterEach(function (): void {
-        Mockery::close();
-    });
 });

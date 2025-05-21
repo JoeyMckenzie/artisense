@@ -60,6 +60,21 @@ describe(DownloadDocsCommand::class, function (): void {
             ->assertExitCode(Command::FAILURE);
     });
 
+    it('returns failure code if version is invalid', function (): void {
+        // Arrange
+        Config::set('artisense.version', 'invalid-version');
+
+        // Act & assert
+        $this->artisan(DownloadDocsCommand::class)
+            ->expectsOutput('🔧 Downloading documents...')
+            ->doesntExpectOutput('Using version 12.x, fetching Laravel docs from GitHub...')
+            ->doesntExpectOutput('Failed to download docs from GitHub.')
+            ->doesntExpectOutputToContain('Failed to unzip docs: ')
+            ->doesntExpectOutput('Unzipping docs...')
+            ->doesntExpectOutput('✅ Laravel docs downloaded and ready!')
+            ->assertExitCode(Command::FAILURE);
+    });
+
     it('downloads and installs docs with a different version', function (): void {
         // Arrange
         $zipPath = __DIR__.'/../../Fixtures/docs-master.zip';

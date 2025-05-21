@@ -106,4 +106,38 @@ describe(AskDocsCommand::class, function (): void {
             ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
             ->assertExitCode(Command::SUCCESS);
     });
+
+    it('formats markdown with proper syntax highlighting', function (): void {
+        // Arrange - Insert test data with various markdown elements
+        $this->connection->table('docs')->insert([
+            'title' => 'Markdown Test',
+            'heading' => 'Formatting',
+            'markdown' => "# Heading 1\n\n## Heading 2\n\n### Heading 3\n\n".
+                "**Bold text** and *italic text*\n\n".
+                "- List item 1\n- List item 2\n\n".
+                "1. Numbered item 1\n2. Numbered item 2\n\n".
+                "```php\necho 'Code block';\n```\n\n".
+                "Inline `code` example\n\n".
+                '[Link text](https://example.com)',
+            'content' => 'Markdown formatting test',
+            'path' => 'markdown-test.md',
+            'version' => $this->version->value,
+            'link' => 'https://laravel.com/docs/12.x/markdown-test',
+        ]);
+
+        // Act & Assert - We're not checking specific formatting here, just that it doesn't error
+        // and that the content is still present
+        $this->artisan(AskDocsCommand::class, ['--query' => 'markdown formatting'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Markdown Test - Formatting')
+            ->expectsOutputToContain('Heading 1')
+            ->expectsOutputToContain('Heading 2')
+            ->expectsOutputToContain('Bold text')
+            ->expectsOutputToContain('List item 1')
+            ->expectsOutputToContain('Numbered item 1')
+            ->expectsOutputToContain('Code block')
+            ->expectsOutputToContain('Inline `code` example')
+            ->expectsOutputToContain('Link text')
+            ->assertExitCode(Command::SUCCESS);
+    });
 });

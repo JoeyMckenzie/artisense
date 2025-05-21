@@ -7,7 +7,7 @@ namespace Artisense\Console\Commands;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Illuminate\Console\Command;
 
-use function Laravel\Prompts\textarea;
+use function Laravel\Prompts\text;
 
 final class AskDocsCommand extends Command
 {
@@ -19,7 +19,7 @@ final class AskDocsCommand extends Command
     {
         $query = $this->option('query');
 
-        $question = $query ?? textarea(
+        $question = $query ?? text(
             label: 'What are you looking for?',
             required: true
         );
@@ -37,12 +37,94 @@ final class AskDocsCommand extends Command
         $this->newLine();
 
         foreach ($results as $result) {
-            $this->line("<fg=yellow;options=bold>$result->title - $result->heading</>");
-            $this->line($result->markdown);
-            $this->line("<fg=blue>Learn more: $result->link</>");
+            $this->info("<fg=yellow;options=bold>$result->title - $result->heading</>");
+            $this->outputFormattedMarkdown($result->markdown);
+            $this->info("<fg=blue>Learn more: $result->link</>");
             $this->newLine();
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Format markdown text for terminal output with syntax highlighting.
+     */
+    private function outputFormattedMarkdown(string $markdown): void
+    {
+        // Split the markdown into lines for processing
+        $lines = explode("\n", $markdown);
+        $inCodeBlock = false;
+        $inList = false;
+
+        foreach ($lines as $line) {
+            // Handle code blocks
+            if (str_starts_with(mb_trim($line), '```')) {
+                $inCodeBlock = ! $inCodeBlock;
+                $this->line($inCodeBlock ? '<fg=cyan>```</>' : '<fg=cyan>```</>');
+
+                continue;
+            }
+
+            if ($inCodeBlock) {
+                // Format code with cyan color
+                $this->line('<fg=cyan>'.$this->escapeAngleBrackets($line).'</>');
+
+                continue;
+            }
+
+            // Handle headings (# Heading)
+            if (preg_match('/^(#{1,6})\s+(.+)$/', $line, $matches)) {
+                $level = mb_strlen($matches[1]);
+                $text = $matches[2];
+
+                // Different colors/styles based on heading level
+                match ($level) {
+                    1 => $this->line("<fg=magenta;options=bold># $text</>"),
+                    2 => $this->line("<fg=magenta;options=bold>## $text</>"),
+                    default => $this->line("<fg=magenta>$matches[1] $text</>"),
+                };
+
+                continue;
+            }
+
+            // Handle inline code (`code`)
+            $line = preg_replace_callback('/`([^`]+)`/', fn(array $matches): string => '<fg=cyan>`'.$this->escapeAngleBrackets($matches[1]).'`</>', $line);
+
+            // Handle bold (**bold**)
+            $line = preg_replace_callback('/\*\*([^*]+)\*\*/', fn(array $matches): string => '<options=bold>**'.$matches[1].'**</>', (string) $line);
+
+            // Handle lists
+            if (preg_match('/^(\s*)([\-\*]|\d+\.)\s+(.+)$/', (string) $line, $matches)) {
+                $indent = $matches[1];
+                $bullet = $matches[2];
+                $text = $matches[3];
+
+                $this->line("$indent<fg=yellow>$bullet</> $text");
+                $inList = true;
+
+                continue;
+            }
+            if ($inList && mb_trim($line) === '') {
+                $inList = false;
+            }
+
+            // Handle links [text](url)
+            $line = preg_replace_callback('/\[([^\]]+)\]\(([^)]+)\)/', fn(array $matches): string => '[<fg=blue>'.$matches[1].'</>](<fg=blue>'.$matches[2].'</>)', (string) $line);
+
+            // Output regular text
+            if (mb_trim($line) !== '') {
+                $this->line($line);
+            } else {
+                $this->line('');
+            }
+        }
+    }
+
+    /**
+     * Escape angle brackets to prevent them from being interpreted as console formatting tags.
+     */
+    private function escapeAngleBrackets(string $text): string
+    {
+        return str_replace(['<', '>'], ['\\<', '\\>'], $text);
     }
 }

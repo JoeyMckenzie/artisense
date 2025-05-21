@@ -14,14 +14,14 @@ covers(VersionManager::class);
 
 describe(VersionManager::class, function (): void {
     beforeEach(function (): void {
-        $this->config = Mockery::mock(Repository::class);
-        $this->versionManager = new VersionManager($this->config);
+        $this->configMock = Mockery::mock(Repository::class);
+        $this->versionManager = new VersionManager($this->configMock);
     });
 
-    it('returns the version when a valid DocumentationVersion instance is provided', function (): void {
+    it('returns DocumentationVersion when config has enum value', function (): void {
         // Arrange
         $expectedVersion = DocumentationVersion::VERSION_12;
-        $this->config->shouldReceive('get')
+        $this->configMock->shouldReceive('get')
             ->with('artisense.version')
             ->once()
             ->andReturn($expectedVersion);
@@ -33,11 +33,11 @@ describe(VersionManager::class, function (): void {
         expect($result)->toBe($expectedVersion);
     });
 
-    it('returns the version when a valid version string is provided', function (): void {
+    it('converts valid string to DocumentationVersion', function (): void {
         // Arrange
-        $versionString = '12.x';
-        $expectedVersion = DocumentationVersion::VERSION_12;
-        $this->config->shouldReceive('get')
+        $versionString = '11.x';
+        $expectedVersion = DocumentationVersion::VERSION_11;
+        $this->configMock->shouldReceive('get')
             ->with('artisense.version')
             ->once()
             ->andReturn($versionString);
@@ -49,9 +49,9 @@ describe(VersionManager::class, function (): void {
         expect($result)->toBe($expectedVersion);
     });
 
-    it('throws an exception when the version is null', function (): void {
+    it('throws exception when version is null', function (): void {
         // Arrange
-        $this->config->shouldReceive('get')
+        $this->configMock->shouldReceive('get')
             ->with('artisense.version')
             ->once()
             ->andReturnNull();
@@ -61,9 +61,9 @@ describe(VersionManager::class, function (): void {
             ->toThrow(DocumentationVersionException::class, 'Documentation version must be configured in your config file.');
     });
 
-    it('throws an exception when the version is not a string', function (): void {
+    it('throws exception when version is not a string or enum', function (): void {
         // Arrange
-        $this->config->shouldReceive('get')
+        $this->configMock->shouldReceive('get')
             ->with('artisense.version')
             ->once()
             ->andReturn(123);
@@ -73,9 +73,9 @@ describe(VersionManager::class, function (): void {
             ->toThrow(DocumentationVersionException::class, "Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
     });
 
-    it('throws an exception when the version string is invalid', function (): void {
+    it('throws exception when version string is invalid', function (): void {
         // Arrange
-        $this->config->shouldReceive('get')
+        $this->configMock->shouldReceive('get')
             ->with('artisense.version')
             ->once()
             ->andReturn('invalid-version');
@@ -83,5 +83,9 @@ describe(VersionManager::class, function (): void {
         // Act & Assert
         expect(fn () => $this->versionManager->getVersion())
             ->toThrow(DocumentationVersionException::class, "Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).");
+    });
+
+    afterEach(function (): void {
+        Mockery::close();
     });
 });

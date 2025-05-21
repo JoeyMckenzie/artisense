@@ -7,7 +7,7 @@ namespace Artisense\Support;
 /**
  * @internal
  */
-final readonly class DiskManager
+final readonly class StorageManager
 {
     private string $storageKey;
 

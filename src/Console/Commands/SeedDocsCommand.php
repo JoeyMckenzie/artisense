@@ -6,7 +6,7 @@ namespace Artisense\Console\Commands;
 
 use Artisense\Repository\ArtisenseRepository;
 use Artisense\Repository\ArtisenseRepositoryManager;
-use Artisense\Support\DiskManager;
+use Artisense\Support\StorageManager;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -27,7 +27,7 @@ final class SeedDocsCommand extends Command
 
     public function handle(
         Filesystem $files,
-        DiskManager $disk,
+        StorageManager $disk,
         ArtisenseRepositoryManager $repositoryManager,
     ): int {
         $this->line('🔍 Preparing database...');

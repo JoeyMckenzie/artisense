@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\Exceptions\DocumentationVersionException;
-use Artisense\Support\DiskManager;
+use Artisense\Support\StorageManager;
 use Artisense\Support\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem as Files;
@@ -21,7 +21,7 @@ final class DownloadDocsCommand extends Command
     public function handle(
         Files $files,
         Http $http,
-        DiskManager $storage,
+        StorageManager $storage,
         VersionManager $versionManager,
     ): int {
         $this->info('🔧 Downloading documents...');

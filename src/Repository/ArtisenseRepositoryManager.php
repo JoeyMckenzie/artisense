@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Repository;
 
-use Artisense\Support\DiskManager;
+use Artisense\Support\StorageManager;
 use Artisense\Support\VersionManager;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\ConnectionResolverInterface;
@@ -13,7 +13,7 @@ use Illuminate\Filesystem\Filesystem;
 final readonly class ArtisenseRepositoryManager
 {
     public function __construct(
-        private DiskManager $disk,
+        private StorageManager $disk,
         private Config $config,
         private Filesystem $files,
         private ConnectionResolverInterface $resolver,

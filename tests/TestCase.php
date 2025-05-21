@@ -12,7 +12,6 @@ use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Override;
 
@@ -36,23 +35,6 @@ class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
-    }
-
-    protected function tearDownParallelTestingCallbacks(): void
-    {
-        $this->app?->forgetInstance(DiskManager::class);
-        File::deleteDirectory($this->storagePath);
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ArtisenseServiceProvider::class,
-        ];
-    }
-
-    protected function setUpParallelTestingCallbacks(): void
-    {
         self::setUpVersion();
         self::setUpStorage();
         self::setUpTestDatabase();
@@ -66,9 +48,7 @@ class TestCase extends Orchestra
 
     private function setUpStorage(): void
     {
-        $uniqueKey = 'artisense/test-' . Str::ulid();
-        $this->storagePath = storage_path($uniqueKey);
-        $this->app?->bind(DiskManager::class, fn(): DiskManager => new DiskManager($uniqueKey));
+        $this->storagePath = storage_path('artisense');
     }
 
     private function setUpTestDatabase(): void
@@ -85,5 +65,19 @@ class TestCase extends Orchestra
         ]);
 
         $this->connection = DB::connection('artisense');
+    }
+
+    #[Override]
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        File::deleteDirectory($this->storagePath);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            ArtisenseServiceProvider::class,
+        ];
     }
 }

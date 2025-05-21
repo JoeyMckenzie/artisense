@@ -22,6 +22,7 @@
         "league/commonmark": "^2.7"
     },
     "require-dev": {
+        "ext-pdo": "*",
         "larastan/larastan": "^v3.4.0",
         "laravel/pint": "^v1.22.1",
         "nunomaduro/collision": "v8.8.0",
@@ -31,11 +32,11 @@
         "pestphp/pest-plugin-arch": "^v3.1.1",
         "pestphp/pest-plugin-laravel": "^v3.2.0",
         "pestphp/pest-plugin-type-coverage": "^3.5",
+        "pestphp/pest-plugin-watch": "^3.0",
         "phpstan/extension-installer": "^1.4.3",
         "phpstan/phpstan-deprecation-rules": "^2.0.3",
         "phpstan/phpstan-phpunit": "^2.0.6",
-        "rector/rector": "^2.0",
-        "ext-pdo": "*"
+        "rector/rector": "^2.0"
     },
     "autoload": {
         "psr-4": {
@@ -54,14 +55,13 @@
         "prepare": "@php vendor/bin/testbench package:discover --ansi",
         "prepare:githooks": "git config core.hookspath .githooks",
         "analyse": "vendor/bin/phpstan analyse",
-        "test:unit": "vendor/bin/pest --parallel",
-        "test:uwatch": "vendor/bin/pest --parallel --watch",
+        "test:unit": "vendor/bin/pest",
+        "test:watch": "vendor/bin/pest --watch",
         "test:coverage": "vendor/bin/pest --coverage",
-        "test:watch": "vendor/bin/pest --watch --parallel --mutate",
         "test:types": "vendor/bin/pest --type-coverage --min=100",
-        "test:mutate": "vendor/bin/pest --mutate --min=100 --parallel",
-        "test:mutate:cache-clear": "vendor/bin/pest --mutate --min=100 --parallel --clear-cache",
-        "test:ci": "vendor/bin/pest --mutate --min=100 --parallel --ci",
+        "test:mutate": "vendor/bin/pest --mutate --min=100",
+        "test:mutate:cache-clear": "vendor/bin/pest --mutate --min=100 --clear-cache",
+        "test:ci": "vendor/bin/pest --mutate --min=100 --ci",
         "test": [
             "@test:unit",
             "@test:coverage",

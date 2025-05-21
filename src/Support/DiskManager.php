@@ -11,9 +11,9 @@ final readonly class DiskManager
 {
     private string $storageKey;
 
-    public function __construct(?string $storageKey)
+    public function __construct()
     {
-        $this->storageKey = $storageKey ?? 'artisense';
+        $this->storageKey = 'artisense';
     }
 
     public function ensureDirectoriesExist(): void

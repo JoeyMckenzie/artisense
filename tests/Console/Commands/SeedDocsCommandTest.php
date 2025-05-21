@@ -209,5 +209,5 @@ describe(SeedDocsCommand::class, function (): void {
             ->get(['title'])
             ->first();
         expect($row->title)->toBe('H1 Heading');
-    })->skip('Need to figure out why heading levels are not being found from query in here.');
+    });
 });

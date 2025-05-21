@@ -59,10 +59,18 @@ final class SeedDocsCommand extends Command
         $path = $file->getRelativePathname();
         $raw = $this->files->get($file->getRealPath());
 
-        // Match all headings
+        /** @var list<list<array{string, int<-1, max>}>> $matches */
+        $matches = [];
+
         preg_match_all('/^(#{1,6})\s+(.+)$/m', $raw, $matches, PREG_OFFSET_CAPTURE);
+
+        /** @var list<array{string, int<-1, max>}> $headings */
         $headings = $matches[0];
+
+        /** @var list<array{non-empty-string, int<-1, max>}> $levels */
         $levels = $matches[1];
+
+        /** @var list<array{non-empty-string, int<-1, max>}> $texts */
         $texts = $matches[2];
 
         if (empty($headings)) {
@@ -72,34 +80,12 @@ final class SeedDocsCommand extends Command
         }
 
         $title = null;
+
+        /** @var array<int, array{heading: string, content: string}> $sections */
         $sections = [];
 
         for ($i = 0; $i < count($headings); $i++) {
-            // Start of current heading
-            $currentHeading = $headings[$i][1];
-
-            // Start of next heading or end of document
-            $nextHeading = $headings[$i + 1][1] ?? mb_strlen($raw);
-
-            // Actual heading text (e.g., "Available Rules")
-            $headingText = mb_trim($texts[$i][0]);
-
-            // How many # characters (1 for h1, 2 for h2, etc.)
-            $level = mb_strlen($levels[$i][0]);
-
-            // Markdown section starting at current heading and ending at next
-            $content = mb_substr($raw, $currentHeading, $nextHeading - $currentHeading);
-
-            // Capture the first h1 as the document title
-            if ($level === 1 && $title === null) {
-                $title = $headingText;
-            }
-
-            // Save this section for later DB insert
-            $sections[] = [
-                'heading' => $headingText,
-                'content' => $content,
-            ];
+            $sections[] = self::parseSection($i, $headings, $levels, $texts, $raw, $title);
         }
 
         $title ??= '[Untitled]';
@@ -121,5 +107,40 @@ final class SeedDocsCommand extends Command
         $slugged = Str::slug($text);
 
         return mb_strtolower(mb_trim($slugged, '-'));
+    }
+
+    /**
+     * @param  list<array{string, int<-1, max>}>  $headings
+     * @param  list<array{non-empty-string, int<-1, max>}>  $levels
+     * @param  list<array{non-empty-string, int<-1, max>}>  $texts
+     * @return array{heading: string, content: string}
+     */
+    private function parseSection(int $index, array $headings, array $levels, array $texts, string $raw, ?string &$title): array
+    {
+        // Start of current heading
+        $currentHeading = $headings[$index][1];
+
+        // Start of next heading or end of document
+        $nextHeading = $headings[$index + 1][1] ?? mb_strlen($raw);
+
+        // Actual heading text (e.g., "Available Rules")
+        $headingText = mb_trim($texts[$index][0]);
+
+        // How many # characters (1 for h1, 2 for h2, etc.)
+        $level = mb_strlen($levels[$index][0]);
+
+        // Markdown section starting at current heading and ending at next
+        $content = mb_substr($raw, $currentHeading, $nextHeading - $currentHeading);
+
+        // Capture the first h1 as the document title
+        if ($level === 1 && $title === null) {
+            $title = $headingText;
+        }
+
+        // Save this section for later DB insert
+        return [
+            'heading' => $headingText,
+            'content' => $content,
+        ];
     }
 }

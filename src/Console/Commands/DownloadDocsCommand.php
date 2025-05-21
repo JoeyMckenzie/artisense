@@ -8,7 +8,6 @@ use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Support\DiskManager;
 use Artisense\Support\VersionManager;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Config\Repository;
 use Illuminate\Filesystem\Filesystem as Files;
 use Illuminate\Http\Client\Factory as Http;
 use ZipArchive;
@@ -19,18 +18,13 @@ final class DownloadDocsCommand extends Command
 
     public $description = 'Downloads and unzips Artisense by downloading Laravel documentation.';
 
-    private Repository $config;
-
     public function handle(
         Files $files,
         Http $http,
         DiskManager $storage,
         VersionManager $versionManager,
-        Repository $config
     ): int {
         $this->info('🔧 Downloading documents...');
-
-        $this->config = $config;
 
         try {
             $version = $versionManager->getVersion();
@@ -71,7 +65,7 @@ final class DownloadDocsCommand extends Command
 
         foreach ($markdownFiles as $file) {
             $source = $storage->path("$extractedFolder/$file");
-            $target = $storage->path('docs/'.basename((string) $file));
+            $target = $storage->path('docs/'.basename($file));
             $files->move($source, $target);
         }
 

@@ -7,6 +7,7 @@ namespace Artisense\Repository;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Support\VersionManager;
 use Illuminate\Database\ConnectionInterface;
+use stdClass;
 
 final readonly class ArtisenseRepository
 {
@@ -45,5 +46,20 @@ final readonly class ArtisenseRepository
             'version' => $this->version->value,
             'link' => sprintf('%s%s', $this->baseUrl, $link),
         ]);
+    }
+
+    /**
+     * Search the documentation using full-text search.
+     *
+     * @return stdClass[] The search results
+     */
+    public function search(string $query, int $limit = 5): array
+    {
+        return $this->db->table('docs')
+            ->whereRaw('content MATCH ?', [$query])
+            ->orderByRaw('rank')
+            ->limit($limit)
+            ->get(['title', 'heading', 'markdown', 'link'])
+            ->all();
     }
 }

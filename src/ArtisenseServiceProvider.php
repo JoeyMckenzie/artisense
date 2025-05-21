@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense;
 
+use Artisense\Console\Commands\AskDocsCommand;
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\SeedDocsCommand;
@@ -27,6 +28,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
                 InstallCommand::class,
                 DownloadDocsCommand::class,
                 SeedDocsCommand::class,
+                AskDocsCommand::class,
             ]);
 
             $this->publishes([

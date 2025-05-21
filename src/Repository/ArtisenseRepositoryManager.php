@@ -29,6 +29,7 @@ final readonly class ArtisenseRepositoryManager
         // Ensure DB directory exists
         $this->files->ensureDirectoryExists(dirname($dbPath));
 
+        // TODO: This would be a real issue, would need to be handled
         if (! $this->files->exists($dbPath)) {
             $this->files->put($dbPath, '');
         }

@@ -4,13 +4,12 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Repository\ArtisenseRepository;
+use Artisense\Repository\ArtisenseRepositoryManager;
 use Artisense\Support\DiskManager;
-use Artisense\Support\VersionManager;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Config\Repository;
-use Illuminate\Database\ConnectionInterface;
-use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;
+use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\Finder\SplFileInfo;
 
@@ -22,55 +21,27 @@ final class SeedDocsCommand extends Command
 
     private CommonMarkConverter $converter;
 
-    private ConnectionInterface $db;
-
     private Filesystem $files;
 
-    private VersionManager $versionManager;
+    private ArtisenseRepository $repository;
 
     public function handle(
-        DiskManager $disk,
         Filesystem $files,
-        Repository $config,
-        ConnectionResolverInterface $resolver,
-        VersionManager $versionManager
+        DiskManager $disk,
+        ArtisenseRepositoryManager $repositoryManager,
     ): int {
-        $this->info('🔍 Parsing Laravel docs...');
+        $this->line('🔍 Preparing database...');
 
         $docsPath = $disk->path('docs');
-        $dbPath = $disk->path('artisense.sqlite');
-
-        $this->line('Preparing database...');
-
-        // Ensure DB directory exists
         $this->files = $files;
-        $this->files->ensureDirectoryExists(dirname($dbPath));
-
-        if (! $this->files->exists($dbPath)) {
-            $this->files->put($dbPath, '');
-        }
-
-        // Set up SQLite connection
-        $config1 = $config;
-        $config1->set([
-            'database.connections.artisense' => [
-                'driver' => 'sqlite',
-                'database' => $dbPath,
-                'prefix' => '',
-            ],
-        ]);
-
-        $this->versionManager = $versionManager;
-
-        $this->db = $resolver->connection('artisense');
-        $this->db->statement('DROP TABLE IF EXISTS docs');
-        $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
+        $this->repository = $repositoryManager->newConnection();
+        $this->repository->createDocsTable();
+        $this->converter = new CommonMarkConverter();
 
         // Only care about markdown files for now, no need to process anything else
         $docFiles = collect($this->files->allFiles($docsPath))
             ->filter(fn (SplFileInfo $file) => $file->isFile())
             ->filter(fn (SplFileInfo $file): bool => $file->getExtension() === 'md');
-        $this->converter = new CommonMarkConverter();
 
         $this->line(sprintf('Found %d docs files...', count($docFiles)));
 
@@ -138,26 +109,16 @@ final class SeedDocsCommand extends Command
         }
     }
 
-    private function createEntry(string $title, string $heading, string $content, string $path): void
+    private function createEntry(string $title, string $heading, string $markdown, string $path): void
     {
         $link = sprintf('%s#%s', str_replace('.md', '', $path), $this->slugify($heading));
-        $version = $this->versionManager->getVersion();
-        $baseUrl = $version->getDocumentationBaseUrl();
-
-        $this->db->table('docs')->insert([
-            'title' => $title,
-            'heading' => $heading,
-            'markdown' => $content,
-            'content' => strip_tags($this->converter->convert($content)->getContent()),
-            'path' => $path,
-            'link' => sprintf('%s%s', $baseUrl, $link),
-        ]);
+        $content = strip_tags($this->converter->convert($markdown)->getContent());
+        $this->repository->createEntry($title, $heading, $markdown, $content, $path, $link);
     }
 
     private function slugify(string $text): string
     {
-        $slugged = preg_replace('/[^a-z0-9]+/i', '-', $text);
-        assert(is_string($slugged));
+        $slugged = Str::slug($text);
 
         return mb_strtolower(mb_trim($slugged, '-'));
     }

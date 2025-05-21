@@ -1,0 +1,48 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Artisense\Repository;
+
+use Artisense\Enums\DocumentationVersion;
+use Artisense\Support\VersionManager;
+use Illuminate\Database\ConnectionInterface;
+
+final readonly class ArtisenseRepository
+{
+    private DocumentationVersion $version;
+
+    private string $baseUrl;
+
+    public function __construct(
+        private ConnectionInterface $db,
+        private VersionManager $versionManager,
+    ) {
+        $this->version = $this->versionManager->getVersion();
+        $this->baseUrl = $this->version->getDocumentationBaseUrl();
+    }
+
+    public function createDocsTable(): void
+    {
+        $this->db->statement('DROP TABLE IF EXISTS docs');
+        $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
+    }
+
+    public function createEntry(
+        string $title,
+        string $heading,
+        string $markdown,
+        string $content,
+        string $path,
+        string $link,
+    ): void {
+        $this->db->table('docs')->insert([
+            'title' => $title,
+            'heading' => $heading,
+            'markdown' => $markdown,
+            'content' => $content,
+            'path' => $path,
+            'link' => sprintf('%s%s', $this->baseUrl, $link),
+        ]);
+    }
+}

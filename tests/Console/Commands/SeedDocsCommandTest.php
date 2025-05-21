@@ -45,8 +45,7 @@ describe(SeedDocsCommand::class, function (): void {
     it('parses markdown docs and stores them in the database', function (): void {
         // Arrange & Act
         $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Parsing Laravel docs...')
-            ->expectsOutput('Preparing database...')
+            ->expectsOutput('🔍 Preparing database...')
             ->expectsOutput('Found 1 docs files...')
             ->expectsOutput('✅ Docs parsed and stored!')
             ->assertExitCode(Command::SUCCESS);
@@ -74,8 +73,7 @@ describe(SeedDocsCommand::class, function (): void {
 
         // Act
         $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Parsing Laravel docs...')
-            ->expectsOutput('Preparing database...')
+            ->expectsOutput('🔍 Preparing database...')
             ->expectsOutput('Found 2 docs files...')
             ->expectsOutput('✅ Docs parsed and stored!')
             ->assertExitCode(Command::SUCCESS);
@@ -157,8 +155,7 @@ describe(SeedDocsCommand::class, function (): void {
 
         // Act
         $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Parsing Laravel docs...')
-            ->expectsOutput('Preparing database...')
+            ->expectsOutput('🔍 Preparing database...')
             ->expectsOutput('Found 1 docs files...')
             ->expectsOutput('✅ Docs parsed and stored!')
             ->assertExitCode(Command::SUCCESS);
@@ -178,8 +175,7 @@ describe(SeedDocsCommand::class, function (): void {
 
         // Act
         $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Parsing Laravel docs...')
-            ->expectsOutput('Preparing database...')
+            ->expectsOutput('🔍 Preparing database...')
             ->expectsOutput('Found 0 docs files...')
             ->expectsOutput('✅ Docs parsed and stored!')
             ->assertExitCode(Command::SUCCESS);

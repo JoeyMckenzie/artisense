@@ -19,13 +19,13 @@
 
 2. **Testing Information**:
 
+- All tests will be run in parallel and should be designed with parallelization in mind
 - Test should be run with the command `composer run test`
 - Follow the Arrange-Act-Assert pattern when writing all tests
 - Prefer to keep tests small in scope, testing a specific behavior
 - Tests should be written using the Pest framework
 - All tests should use the `covers()` within them to allow for code coverage metrics
-- All tests should be wrapped within a `describe()` block, followed by subsequent `it()` blocks like the following
-  example:
+- All tests should be wrapped within `describe()` blocks, followed by subsequent `it()` blocks like the following:
 
 ```php
 covers(Calculator::class);

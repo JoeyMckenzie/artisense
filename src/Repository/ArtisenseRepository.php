@@ -25,7 +25,7 @@ final readonly class ArtisenseRepository
     public function createDocsTable(): void
     {
         $this->db->statement('DROP TABLE IF EXISTS docs');
-        $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, link)');
+        $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
     }
 
     public function createEntry(
@@ -42,6 +42,7 @@ final readonly class ArtisenseRepository
             'markdown' => $markdown,
             'content' => $content,
             'path' => $path,
+            'version' => $this->version->value,
             'link' => sprintf('%s%s', $this->baseUrl, $link),
         ]);
     }

@@ -5,10 +5,6 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\SeedDocsCommand;
-use Artisense\Enums\DocumentationVersion;
-use Artisense\Support\DiskManager;
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Console\Command\Command;
 
@@ -16,30 +12,8 @@ covers(SeedDocsCommand::class);
 
 describe(SeedDocsCommand::class, function (): void {
     beforeEach(function (): void {
-        $uniqueKey = 'artisense/test-'.getmypid();
-        $this->storagePath = storage_path($uniqueKey);
-        $this->app->bind(DiskManager::class, fn (): DiskManager => new DiskManager($uniqueKey));
-
         File::ensureDirectoryExists($this->storagePath.'/docs');
         File::copy(__DIR__.'/../../Fixtures/artisan.md', $this->storagePath.'/docs/artisan.md');
-
-        $dbPath = $this->storagePath.'/artisense.sqlite';
-        File::put($dbPath, '');
-
-        Config::set('artisense.version', DocumentationVersion::VERSION_12);
-        Config::set([
-            'database.connections.artisense' => [
-                'driver' => 'sqlite',
-                'database' => $dbPath,
-                'prefix' => '',
-            ],
-        ]);
-
-        $this->db = DB::connection('artisense')->table('docs');
-    });
-
-    afterEach(function (): void {
-        File::deleteDirectory($this->storagePath);
     });
 
     it('parses markdown docs and stores them in the database', function (): void {
@@ -57,10 +31,11 @@ describe(SeedDocsCommand::class, function (): void {
         // Verify specific content was parsed correctly
         $row = $this->db
             ->where(['heading' => 'Artisan Console'])
-            ->get(['title', 'link'])
+            ->get(['title', 'version', 'link'])
             ->first();
         expect($row)->not->toBeNull()
             ->and($row->title)->toBe('Artisan Console')
+            ->and($row->version)->toBe($this->version->value)
             ->and($row->link)->toContain('https://laravel.com/docs/12.x/artisan#artisan-console');
     });
 
@@ -94,7 +69,7 @@ describe(SeedDocsCommand::class, function (): void {
             ->assertExitCode(Command::SUCCESS);
 
         // Assert
-        $query = DB::connection('artisense')
+        $query = $this->connection
             ->select('PRAGMA table_info(docs)');
         $result = collect($query)
             ->pluck('name')
@@ -130,18 +105,17 @@ describe(SeedDocsCommand::class, function (): void {
     });
 
     it('creates correct links with slugified headings', function (): void {
-        // Act
+        // Arrange
         $this->artisan(SeedDocsCommand::class)
             ->assertExitCode(Command::SUCCESS);
 
-        // Assert
-
-        // Check for a heading with special characters
+        // Act
         $row = $this->db
             ->where(['heading' => 'Tinker (REPL)'])
             ->get(['link'])
             ->first();
 
+        // Assert
         expect($row)->not->toBeNull()
             ->and($row->link)->toContain('artisan#tinker-repl');
     });

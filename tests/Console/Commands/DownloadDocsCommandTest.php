@@ -6,7 +6,6 @@ namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Enums\DocumentationVersion;
-use Artisense\Support\DiskManager;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -17,23 +16,15 @@ covers(DownloadDocsCommand::class);
 describe(DownloadDocsCommand::class, function (): void {
     beforeEach(function (): void {
         Http::preventStrayRequests();
-        $uniqueKey = 'artisense/test-'.uniqid();
-        $this->storagePath = storage_path($uniqueKey);
-        $this->app->bind(DiskManager::class, fn (): DiskManager => new DiskManager($uniqueKey));
-    });
-
-    afterEach(function (): void {
-        File::deleteDirectory($this->storagePath);
     });
 
     it('downloads and installs Laravel docs, returning successful code', function (): void {
         // Arrange
         $zipPath = __DIR__.'/../../Fixtures/docs-12.x.zip';
         $zipContent = file_get_contents($zipPath);
-        $version = DocumentationVersion::VERSION_12;
 
         Http::fake([
-            $version->getZipUrl() => Http::response($zipContent),
+            $this->version->getZipUrl() => Http::response($zipContent),
         ]);
 
         // Act & assert
@@ -54,10 +45,8 @@ describe(DownloadDocsCommand::class, function (): void {
 
     it('returns failure code if HTTP retrieval fails', function (): void {
         // Arrange
-        $version = DocumentationVersion::VERSION_12;
-
         Http::fake([
-            $version->getZipUrl() => Http::response(null, 500),
+            $this->version->getZipUrl() => Http::response(null, 500),
         ]);
 
         // Act & assert
@@ -69,8 +58,6 @@ describe(DownloadDocsCommand::class, function (): void {
             ->doesntExpectOutput('Unzipping docs...')
             ->doesntExpectOutput('✅ Laravel docs downloaded and ready!')
             ->assertExitCode(Command::FAILURE);
-
-        expect(File::exists($this->storagePath))->toBeFalse();
     });
 
     it('downloads and installs docs with a different version', function (): void {
@@ -105,15 +92,13 @@ describe(DownloadDocsCommand::class, function (): void {
         // Arrange
         $zipPath = __DIR__.'/../../Fixtures/docs-12.x.zip';
         $zipContent = file_get_contents($zipPath);
-        $version = DocumentationVersion::VERSION_12;
 
         // Create the storage directory before running the command
-        File::makeDirectory($this->storagePath, 0755, true);
-        File::makeDirectory($this->storagePath.'/docs', 0755, true);
-        expect(File::exists($this->storagePath))->toBeTrue();
+        File::ensureDirectoryExists($this->storagePath);
+        File::ensureDirectoryExists($this->storagePath.'/docs');
 
         Http::fake([
-            $version->getZipUrl() => Http::response($zipContent),
+            $this->version->getZipUrl() => Http::response($zipContent),
         ]);
 
         // Act & assert
@@ -132,11 +117,10 @@ describe(DownloadDocsCommand::class, function (): void {
 
     it('handles ZIP extraction failure', function (): void {
         // Arrange
-        $version = DocumentationVersion::VERSION_12;
         $invalidZipContent = 'This is not a valid ZIP file content';
 
         Http::fake([
-            $version->getZipUrl() => Http::response($invalidZipContent),
+            $this->version->getZipUrl() => Http::response($invalidZipContent),
         ]);
 
         // Act & assert

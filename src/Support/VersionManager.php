@@ -35,7 +35,6 @@ final readonly class VersionManager
             throw DocumentationVersionException::invalidVersion();
         }
 
-        assert(is_string($value));
         $version = DocumentationVersion::tryFrom($value);
 
         if ($version === null) {

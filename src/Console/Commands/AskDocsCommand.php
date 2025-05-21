@@ -88,10 +88,10 @@ final class AskDocsCommand extends Command
             }
 
             // Handle inline code (`code`)
-            $line = preg_replace_callback('/`([^`]+)`/', fn(array $matches): string => '<fg=cyan>`'.$this->escapeAngleBrackets($matches[1]).'`</>', $line);
+            $line = preg_replace_callback('/`([^`]+)`/', fn (array $matches): string => '<fg=cyan>`'.$this->escapeAngleBrackets($matches[1]).'`</>', $line);
 
             // Handle bold (**bold**)
-            $line = preg_replace_callback('/\*\*([^*]+)\*\*/', fn(array $matches): string => '<options=bold>**'.$matches[1].'**</>', (string) $line);
+            $line = preg_replace_callback('/\*\*([^*]+)\*\*/', fn (array $matches): string => '<options=bold>**'.$matches[1].'**</>', (string) $line);
 
             // Handle lists
             if (preg_match('/^(\s*)([\-\*]|\d+\.)\s+(.+)$/', (string) $line, $matches)) {
@@ -109,7 +109,7 @@ final class AskDocsCommand extends Command
             }
 
             // Handle links [text](url)
-            $line = preg_replace_callback('/\[([^\]]+)\]\(([^)]+)\)/', fn(array $matches): string => '[<fg=blue>'.$matches[1].'</>](<fg=blue>'.$matches[2].'</>)', (string) $line);
+            $line = preg_replace_callback('/\[([^\]]+)\]\(([^)]+)\)/', fn (array $matches): string => '[<fg=blue>'.$matches[1].'</>](<fg=blue>'.$matches[2].'</>)', (string) $line);
 
             // Output regular text
             if (mb_trim($line) !== '') {

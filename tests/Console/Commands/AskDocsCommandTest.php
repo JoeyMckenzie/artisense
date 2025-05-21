@@ -66,4 +66,44 @@ describe(AskDocsCommand::class, function (): void {
             ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
             ->assertExitCode(Command::SUCCESS);
     });
+
+    it('returns search results when using --query option', function (): void {
+        // Act & Assert
+        $this->artisan(AskDocsCommand::class, ['--query' => 'artisan command'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
+            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('displays a message when no results are found using --query option', function (): void {
+        // Act & Assert
+        $this->artisan(AskDocsCommand::class, ['--query' => 'reverb'])
+            ->expectsOutput('No results found for your query.')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('handles multiple search results when using --query option', function (): void {
+        // Ensure we have multiple entries (reusing the setup from the previous test)
+        if (! $this->connection->table('docs')->where('heading', 'Writing Commands')->exists()) {
+            $this->connection->table('docs')->insert([
+                'title' => 'Artisan Console',
+                'heading' => 'Writing Commands',
+                'markdown' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
+                'content' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
+                'path' => 'artisan.md',
+                'version' => $this->version->value,
+                'link' => 'https://laravel.com/docs/12.x/artisan#writing-commands',
+            ]);
+        }
+
+        // Act & Assert
+        $this->artisan(AskDocsCommand::class, ['--query' => 'artisan'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Writing Commands')
+            ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
+            ->assertExitCode(Command::SUCCESS);
+    });
 });

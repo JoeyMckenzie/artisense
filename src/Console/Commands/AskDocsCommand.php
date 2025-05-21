@@ -7,17 +7,19 @@ namespace Artisense\Console\Commands;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Illuminate\Console\Command;
 
-use function Laravel\Prompts\text;
+use function Laravel\Prompts\textarea;
 
 final class AskDocsCommand extends Command
 {
-    public $signature = 'artisense:ask';
+    public $signature = 'artisense:ask {--query= : Search query for documentation}';
 
     public $description = 'Ask questions about Laravel documentation and get relevant information.';
 
     public function handle(ArtisenseRepositoryManager $repositoryManager): int
     {
-        $question = text(
+        $query = $this->option('query');
+
+        $question = $query ?? textarea(
             label: 'What are you looking for?',
             required: true
         );
@@ -25,7 +27,7 @@ final class AskDocsCommand extends Command
         $repository = $repositoryManager->newConnection();
         $results = $repository->search($question);
 
-        if (empty($results)) {
+        if (count($results) === 0) {
             $this->info('No results found for your query.');
 
             return self::SUCCESS;

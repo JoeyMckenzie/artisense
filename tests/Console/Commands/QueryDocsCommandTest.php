@@ -100,7 +100,7 @@ describe(QueryDocsCommand::class, function (): void {
     });
 
     it('formats markdown with proper syntax highlighting', function (): void {
-        // Arrange - Insert test data with various markdown elements
+        // Arrange, insert test data with various markdown elements
         $markdown = <<<'MARKDOWN'
 # Heading 1
 
@@ -134,7 +134,7 @@ MARKDOWN;
             'link' => 'https://laravel.com/docs/12.x/markdown-test',
         ]);
 
-        // Act & Assert - We're not checking specific formatting here, just that it doesn't error
+        // Act & Assert, we're not checking specific formatting here, just that it doesn't error
         // and that the content is still present, but h1 headings should be skipped
         $this->artisan(QueryDocsCommand::class, ['--query' => 'markdown formatting'])
             ->expectsOutput('🔍 Found relevant information:')
@@ -144,7 +144,7 @@ MARKDOWN;
     });
 
     it('excludes h1 headings from search results', function (): void {
-        // Arrange - Insert test data with h1 heading (title equals heading)
+        // Arrange, insert test data with h1 heading (title equals heading)
         $this->connection->table('docs')->insert([
             'title' => 'H1 Heading',
             'heading' => 'H1 Heading', // This is an h1 heading (title equals heading)

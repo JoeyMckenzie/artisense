@@ -1,4 +1,4 @@
-1. **Additional Development Information**:
+1. **Development Guidelines**:
 
 - Use PHP 8.3+ features where appropriate
 - Follow Laravel conventions and best practices
@@ -17,7 +17,7 @@
 - Prefer constructor injection to facade usage for source code
 - You may use facades within test code for ease of use
 
-2. **Testing Information**:
+2. **Testing Guidelines**:
 
 - All tests will be run in parallel and should be designed with parallelization in mind
 - Test should be run with the command `composer run test`

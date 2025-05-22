@@ -7,6 +7,7 @@ namespace Artisense\Tests\Repository;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Repository\ArtisenseRepository;
 use Artisense\Support\VersionManager;
+use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 
@@ -24,9 +25,9 @@ describe(ArtisenseRepository::class, function (): void {
         $this->repository->createDocsTable();
 
         // Assert
-        $tables = $this->connection->select("SELECT name FROM sqlite_master WHERE type='table' AND name='docs'");
-        expect($tables)->toHaveCount(1)
-            ->and($tables[0]->name)->toBe('docs');
+        $tables = $this->connection->selectOne("SELECT name FROM sqlite_master WHERE type='table' AND name='docs'");
+        expect($tables)->not->toBeNull()
+            ->and($tables->name)->toBe('docs');
 
         // Verify the table structure
         $tableInfo = $this->connection->select('PRAGMA table_info(docs)');
@@ -39,6 +40,10 @@ describe(ArtisenseRepository::class, function (): void {
             ->and($columns)->toContain('version')
             ->and($columns)->toContain('path')
             ->and($columns)->toContain('link');
+
+        // Verify no errors if we recreate it again
+        expect(fn () => $this->repository->createDocsTable())
+            ->not->toThrow(Exception::class);
     });
 
     it('creates an entry in the docs table', function (): void {

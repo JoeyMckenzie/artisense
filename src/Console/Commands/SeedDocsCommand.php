@@ -56,6 +56,9 @@ final class SeedDocsCommand extends Command
 
         $this->line(sprintf('Found %d docs files...', count($docFiles)));
 
+        // Need to avoid doc duplicates, so delete all entries for the configured version before seeding
+        $this->repository->deleteExistingEntries();
+
         foreach ($docFiles as $file) {
             self::processMarkdownDocument($file);
         }

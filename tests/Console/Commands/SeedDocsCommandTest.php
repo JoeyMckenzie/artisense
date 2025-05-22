@@ -40,6 +40,29 @@ describe(SeedDocsCommand::class, function (): void {
             ->and($row->link)->toContain('https://laravel.com/docs/12.x/artisan#artisan-console');
     });
 
+    it('removes existing entries by version before seeding new docs', function (): void {
+        // Arrange, run the command to seed the DB
+        $this->artisan(SeedDocsCommand::class)
+            ->expectsOutput('🔍 Preparing database...')
+            ->expectsOutput('Found 1 docs files...')
+            ->expectsOutput('✅ Docs parsed and stored!')
+            ->assertExitCode(Command::SUCCESS);
+
+        $result = $this->db->get();
+        expect(count($result))->toBe(45);
+
+        // Act, run the command again
+        $this->artisan(SeedDocsCommand::class)
+            ->expectsOutput('🔍 Preparing database...')
+            ->expectsOutput('Found 1 docs files...')
+            ->expectsOutput('✅ Docs parsed and stored!')
+            ->assertExitCode(Command::SUCCESS);
+
+        // Assert, count should still be the same due to deleting => re-seeding process
+        $result = $this->db->get();
+        expect(count($result))->toBe(45);
+    });
+
     it('handles files without headings', function (): void {
         // Arrange
         File::put(

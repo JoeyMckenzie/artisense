@@ -32,6 +32,11 @@ final readonly class ArtisenseRepository
         }
     }
 
+    public function deleteExistingEntries(): void
+    {
+        $this->db->statement('DELETE FROM docs WHERE version = ?', [$this->version->value]);
+    }
+
     public function createEntry(
         string $title,
         string $heading,

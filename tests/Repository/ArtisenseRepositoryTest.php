@@ -6,7 +6,7 @@ namespace Artisense\Tests\Repository;
 
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Repository\ArtisenseRepository;
-use Artisense\Support\VersionManager;
+use Artisense\Support\Services\VersionManager;
 use Exception;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;

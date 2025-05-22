@@ -8,7 +8,7 @@ use Exception;
 
 final class DocumentationVersionException extends Exception
 {
-    public function __construct(string $message)
+    private function __construct(string $message)
     {
         parent::__construct($message);
     }

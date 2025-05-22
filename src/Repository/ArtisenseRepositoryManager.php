@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Artisense\Repository;
 
-use Artisense\Support\StorageManager;
-use Artisense\Support\VersionManager;
+use Artisense\Support\Services\StorageManager;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Artisense\Tests\Console\Commands;
 
-use Artisense\Console\Commands\AskDocsCommand;
+use Artisense\Console\Commands\QueryDocsCommand;
 use Symfony\Component\Console\Command\Command;
 
-covers(AskDocsCommand::class);
+covers(QueryDocsCommand::class);
 
-describe(AskDocsCommand::class, function (): void {
+describe(QueryDocsCommand::class, function (): void {
     beforeEach(function (): void {
         // Create the docs table
         $this->connection->statement('DROP TABLE IF EXISTS docs');
@@ -28,7 +28,7 @@ describe(AskDocsCommand::class, function (): void {
     });
 
     it('returns search results when matches are found', function (): void {
-        $this->artisan(AskDocsCommand::class)
+        $this->artisan(QueryDocsCommand::class)
             ->expectsQuestion('What are you looking for?', 'artisan command')
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction')
@@ -39,7 +39,7 @@ describe(AskDocsCommand::class, function (): void {
 
     it('displays a message when no results are found', function (): void {
         // Act & Assert
-        $this->artisan(AskDocsCommand::class)
+        $this->artisan(QueryDocsCommand::class)
             ->expectsQuestion('What are you looking for?', 'reverb')
             ->expectsOutput('No results found for your query.')
             ->assertExitCode(Command::SUCCESS);
@@ -58,7 +58,7 @@ describe(AskDocsCommand::class, function (): void {
         ]);
 
         // Act & Assert
-        $this->artisan(AskDocsCommand::class)
+        $this->artisan(QueryDocsCommand::class)
             ->expectsQuestion('What are you looking for?', 'artisan')
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction')
@@ -69,7 +69,7 @@ describe(AskDocsCommand::class, function (): void {
 
     it('returns search results when using --query option', function (): void {
         // Act & Assert
-        $this->artisan(AskDocsCommand::class, ['--query' => 'artisan command'])
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
@@ -79,7 +79,7 @@ describe(AskDocsCommand::class, function (): void {
 
     it('displays a message when no results are found using --query option', function (): void {
         // Act & Assert
-        $this->artisan(AskDocsCommand::class, ['--query' => 'reverb'])
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'reverb'])
             ->expectsOutput('No results found for your query.')
             ->assertExitCode(Command::SUCCESS);
     });
@@ -99,7 +99,7 @@ describe(AskDocsCommand::class, function (): void {
         }
 
         // Act & Assert
-        $this->artisan(AskDocsCommand::class, ['--query' => 'artisan'])
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'artisan'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction')
             ->expectsOutputToContain('Artisan Console - Writing Commands')
@@ -127,7 +127,7 @@ describe(AskDocsCommand::class, function (): void {
 
         // Act & Assert - We're not checking specific formatting here, just that it doesn't error
         // and that the content is still present, but h1 headings should be skipped
-        $this->artisan(AskDocsCommand::class, ['--query' => 'markdown formatting'])
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'markdown formatting'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Markdown Test - Formatting')
             ->doesntExpectOutputToContain('Heading 1') // h1 headings should be skipped
@@ -166,7 +166,7 @@ describe(AskDocsCommand::class, function (): void {
         ]);
 
         // Act & Assert - Verify that h1 headings are excluded from search results
-        $this->artisan(AskDocsCommand::class, ['--query' => 'heading'])
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'heading'])
             ->expectsOutput('🔍 Found relevant information:')
             ->doesntExpectOutputToContain('H1 Heading') // h1 heading should be excluded
             ->expectsOutputToContain('Test Document - H2 Section') // h2 heading should be included

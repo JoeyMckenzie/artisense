@@ -6,7 +6,7 @@ namespace Artisense\Tests\Support;
 
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\DocumentationVersionException;
-use Artisense\Support\VersionManager;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Contracts\Config\Repository;
 use Mockery;
 

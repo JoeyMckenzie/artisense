@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Support;
+namespace Artisense\Support\Services;
 
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\DocumentationVersionException;

@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Artisense\Support\Formatters;
+
+use Artisense\Contracts\OutputFormatterContract;
+
+final class GlowOutputFormatter implements OutputFormatterContract
+{
+    public function format(string $output): string
+    {
+        // Define how input/output streams will be handled for the child process
+        $descriptors = [
+            0 => ['pipe', 'r'], // stdin: we will write the markdown content to this
+            1 => ['pipe', 'w'], // stdout: we will read the rendered output from this
+            2 => ['pipe', 'w'], // stderr: for errors (we won't use the content here)
+        ];
+
+        // Start the `glow` process with given I/O stream definitions
+        $process = proc_open('glow --style=dark --width=120', $descriptors, $pipes);
+
+        // If the process failed to start, just return the original unformatted output
+        if (! is_resource($process)) {
+            return $output;
+        }
+
+        // Write the markdown content to `glow`'s stdin
+        fwrite($pipes[0], $output);
+        fclose($pipes[0]); // Close stdin to signal we're done sending input
+
+        // Read the formatted output from `glow`'s stdout
+        $formatted = stream_get_contents($pipes[1]);
+        fclose($pipes[1]);
+
+        // Close stderr even though we're not using it (good practice)
+        fclose($pipes[2]);
+
+        // Close the process and clean up resources
+        proc_close($process);
+
+        // Return the formatted markdown rendered by `glow`
+        return $formatted;
+    }
+}

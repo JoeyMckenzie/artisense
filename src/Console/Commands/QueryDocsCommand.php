@@ -4,19 +4,29 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Contracts\OutputFormatterContract;
+use Artisense\Exceptions\InvalidOutputFormatterException;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Config\Repository as Config;
+use ReflectionClass;
 
 use function Laravel\Prompts\text;
 
-final class AskDocsCommand extends Command
+final class QueryDocsCommand extends Command
 {
-    public $signature = 'artisense:ask {--query= : Search query for documentation}';
+    public $signature = 'artisense:docs {--query= : Search query for documentation}';
 
     public $description = 'Ask questions about Laravel documentation and get relevant information.';
 
-    public function handle(ArtisenseRepositoryManager $repositoryManager): int
-    {
+    private Config $config;
+
+    public function handle(
+        ArtisenseRepositoryManager $repositoryManager,
+        Config $config,
+    ): int {
+        $this->config = $config;
+
         $query = $this->option('query');
 
         $question = $query ?? text(
@@ -25,7 +35,7 @@ final class AskDocsCommand extends Command
         );
 
         $repository = $repositoryManager->newConnection();
-        $results = $repository->search($question);
+        $results = $repository->search($question, 1);
 
         if (count($results) === 0) {
             $this->info('No results found for your query.');
@@ -37,19 +47,73 @@ final class AskDocsCommand extends Command
         $this->newLine();
 
         foreach ($results as $result) {
-            $this->info("<fg=yellow;options=bold>$result->title - $result->heading</>");
-            $this->outputFormattedMarkdown($result->markdown);
-            $this->info("<fg=blue>Learn more: $result->link</>");
+            /** @var string $title */
+            $title = $result->title;
+
+            /** @var string $heading */
+            $heading = $result->heading;
+
+            /** @var string $markdown */
+            $markdown = $result->markdown;
+
+            /** @var string $link */
+            $link = $result->link;
+
+            $this->info("<fg=yellow;options=bold>$title - $heading</>");
+
+            try {
+                $formatted = $this->getFormattedOutput($markdown);
+                $this->line($formatted);
+            } catch (InvalidOutputFormatterException $e) {
+                $this->warn('Failed to format markdown with the configured formatter, using basic formatting.');
+                $this->warn($e->getMessage());
+                $this->outputBasicFormattedMarkdown($markdown);
+            }
+
+            $this->info("<fg=blue>Learn more: $link</>");
             $this->newLine();
         }
 
         return self::SUCCESS;
     }
 
+    private function getFormattedOutput(string $markdown): string
+    {
+        /** @var null|class-string $configuredFormatter */
+        $configuredFormatter = $this->config->get('artisense.formatter');
+
+        if ($configuredFormatter === null) {
+            return $markdown;
+        }
+
+        if (! self::validateFormatter($configuredFormatter)) {
+            throw InvalidOutputFormatterException::mustInheritFromOutputFormatter($configuredFormatter);
+        }
+
+        /** @var OutputFormatterContract $formatter */
+        $formatter = app($configuredFormatter);
+
+        return $formatter->format($markdown);
+    }
+
+    /**
+     * @param  class-string  $formatter
+     *
+     * @throws InvalidOutputFormatterException
+     */
+    private function validateFormatter(string $formatter): bool
+    {
+        if (! class_exists($formatter)) {
+            throw InvalidOutputFormatterException::invalidFormatterClass($formatter);
+        }
+
+        return new ReflectionClass($formatter)->implementsInterface(OutputFormatterContract::class);
+    }
+
     /**
      * Format markdown text for terminal output with syntax highlighting.
      */
-    private function outputFormattedMarkdown(string $markdown): void
+    private function outputBasicFormattedMarkdown(string $markdown): void
     {
         // Split the markdown into lines for processing
         $lines = explode("\n", $markdown);

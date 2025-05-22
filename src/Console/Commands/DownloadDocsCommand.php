@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\Exceptions\DocumentationVersionException;
-use Artisense\Support\StorageManager;
-use Artisense\Support\VersionManager;
+use Artisense\Support\Services\StorageManager;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem as Files;
 use Illuminate\Http\Client\Factory as Http;

@@ -32,4 +32,17 @@ return [
 
     'version' => DocumentationVersion::VERSION_12,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Output Formatter
+    |--------------------------------------------------------------------------
+    |
+    | Specifies the optional formatter that the output should use for markdown.
+    | Markdown content will be returned from artisense and can be formatted
+    | Using any formatting tools installed wherever artisense is running.
+    |
+    */
+
+    'formatter' => null,
+
 ];

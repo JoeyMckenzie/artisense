@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Repository;
 
 use Artisense\Enums\DocumentationVersion;
-use Artisense\Support\VersionManager;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Database\ConnectionInterface;
 use stdClass;
 

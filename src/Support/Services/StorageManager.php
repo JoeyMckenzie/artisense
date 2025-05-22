@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Support;
+namespace Artisense\Support\Services;
 
 /**
  * @internal

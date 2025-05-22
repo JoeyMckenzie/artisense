@@ -9,13 +9,14 @@ use Artisense\Exceptions\InvalidOutputFormatterException;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Validation\Factory as Validator;
 use ReflectionClass;
 
 use function Laravel\Prompts\text;
 
 final class QueryDocsCommand extends Command
 {
-    public $signature = 'artisense:docs {--query= : Search query for documentation}';
+    public $signature = 'artisense:docs {--query= : Search query for documentation} {--limit=3 : Number of results to return}';
 
     public $description = 'Ask questions about Laravel documentation and get relevant information.';
 
@@ -24,10 +25,21 @@ final class QueryDocsCommand extends Command
     public function handle(
         ArtisenseRepositoryManager $repositoryManager,
         Config $config,
+        Validator $validator,
     ): int {
         $this->config = $config;
 
         $query = $this->option('query');
+        $limit = $this->option('limit');
+        $rule = $validator->make(['limit' => $limit], [
+            'limit' => 'nullable|integer|max:10|min:1',
+        ]);
+
+        if ($rule->fails()) {
+            $this->error($rule->errors()->first());
+
+            return self::FAILURE;
+        }
 
         $question = $query ?? text(
             label: 'What are you looking for?',
@@ -35,7 +47,7 @@ final class QueryDocsCommand extends Command
         );
 
         $repository = $repositoryManager->newConnection();
-        $results = $repository->search($question, 1);
+        $results = $repository->search($question, (int) $limit);
 
         if (count($results) === 0) {
             $this->info('No results found for your query.');

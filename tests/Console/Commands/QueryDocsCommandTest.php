@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\QueryDocsCommand;
+use Artisense\Tests\Fixtures\TestOutputFormatter;
+use Illuminate\Support\Facades\Config;
 use Symfony\Component\Console\Command\Command;
 
 covers(QueryDocsCommand::class);
@@ -15,7 +17,7 @@ describe(QueryDocsCommand::class, function (): void {
         $this->connection->statement('DROP TABLE IF EXISTS docs');
         $this->connection->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
 
-        // Insert test data
+        // Insert test data for Introduction
         $this->db->insert([
             'title' => 'Artisan Console',
             'heading' => 'Introduction',
@@ -24,6 +26,17 @@ describe(QueryDocsCommand::class, function (): void {
             'path' => 'artisan.md',
             'version' => $this->version->value,
             'link' => 'https://laravel.com/docs/12.x/artisan#introduction',
+        ]);
+
+        // Insert test data for Writing Commands
+        $this->db->insert([
+            'title' => 'Artisan Console',
+            'heading' => 'Writing Commands',
+            'markdown' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
+            'content' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
+            'path' => 'artisan.md',
+            'version' => $this->version->value,
+            'link' => 'https://laravel.com/docs/12.x/artisan#writing-commands',
         ]);
     });
 
@@ -46,17 +59,6 @@ describe(QueryDocsCommand::class, function (): void {
     });
 
     it('handles multiple search results', function (): void {
-        // Arrange, add another test entry
-        $this->connection->table('docs')->insert([
-            'title' => 'Artisan Console',
-            'heading' => 'Writing Commands',
-            'markdown' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
-            'content' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
-            'path' => 'artisan.md',
-            'version' => $this->version->value,
-            'link' => 'https://laravel.com/docs/12.x/artisan#writing-commands',
-        ]);
-
         // Act & Assert
         $this->artisan(QueryDocsCommand::class)
             ->expectsQuestion('What are you looking for?', 'artisan')
@@ -79,25 +81,15 @@ describe(QueryDocsCommand::class, function (): void {
 
     it('displays a message when no results are found using --query option', function (): void {
         // Act & Assert
-        $this->artisan(QueryDocsCommand::class, ['--query' => 'reverb'])
+        $this->artisan(QueryDocsCommand::class, [
+            '--query' => 'reverb',
+            '--limit' => 2,
+        ])
             ->expectsOutput('No results found for your query.')
             ->assertExitCode(Command::SUCCESS);
     });
 
     it('handles multiple search results when using --query option', function (): void {
-        // Ensure we have multiple entries (reusing the setup from the previous test)
-        if (! $this->connection->table('docs')->where('heading', 'Writing Commands')->exists()) {
-            $this->connection->table('docs')->insert([
-                'title' => 'Artisan Console',
-                'heading' => 'Writing Commands',
-                'markdown' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
-                'content' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
-                'path' => 'artisan.md',
-                'version' => $this->version->value,
-                'link' => 'https://laravel.com/docs/12.x/artisan#writing-commands',
-            ]);
-        }
-
         // Act & Assert
         $this->artisan(QueryDocsCommand::class, ['--query' => 'artisan'])
             ->expectsOutput('🔍 Found relevant information:')
@@ -109,16 +101,33 @@ describe(QueryDocsCommand::class, function (): void {
 
     it('formats markdown with proper syntax highlighting', function (): void {
         // Arrange - Insert test data with various markdown elements
-        $this->connection->table('docs')->insert([
+        $markdown = <<<'MARKDOWN'
+# Heading 1
+
+## Heading 2
+
+### Heading 3
+
+**Bold text** and *italic text*
+
+- List item 1
+- List item 2
+
+1. Numbered item 1
+2. Numbered item 2
+
+```php
+echo 'Code block';
+```
+Inline `code` example
+
+[Link text](https://example.com)",
+MARKDOWN;
+
+        $this->db->insert([
             'title' => 'Markdown Test',
             'heading' => 'Formatting',
-            'markdown' => "# Heading 1\n\n## Heading 2\n\n### Heading 3\n\n".
-                "**Bold text** and *italic text*\n\n".
-                "- List item 1\n- List item 2\n\n".
-                "1. Numbered item 1\n2. Numbered item 2\n\n".
-                "```php\necho 'Code block';\n```\n\n".
-                "Inline `code` example\n\n".
-                '[Link text](https://example.com)',
+            'markdown' => $markdown,
             'content' => 'Markdown formatting test',
             'path' => 'markdown-test.md',
             'version' => $this->version->value,
@@ -130,15 +139,7 @@ describe(QueryDocsCommand::class, function (): void {
         $this->artisan(QueryDocsCommand::class, ['--query' => 'markdown formatting'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Markdown Test - Formatting')
-            ->doesntExpectOutputToContain('Heading 1') // h1 headings should be skipped
-            ->expectsOutputToContain('Heading 2') // h2 headings should be displayed
-            ->expectsOutputToContain('Heading 3') // h3 headings should be displayed
-            ->expectsOutputToContain('Bold text')
-            ->expectsOutputToContain('List item 1')
-            ->expectsOutputToContain('Numbered item 1')
-            ->expectsOutputToContain('Code block')
-            ->expectsOutputToContain('Inline `code` example')
-            ->expectsOutputToContain('Link text')
+            ->expectsOutputToContain($markdown)
             ->assertExitCode(Command::SUCCESS);
     });
 
@@ -171,6 +172,46 @@ describe(QueryDocsCommand::class, function (): void {
             ->doesntExpectOutputToContain('H1 Heading') // h1 heading should be excluded
             ->expectsOutputToContain('Test Document - H2 Section') // h2 heading should be included
             ->expectsOutputToContain('This is content under an h2 heading.')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('formats output using a custom formatter when configured', function (): void {
+        // Arrange
+        Config::set('artisense.formatter', TestOutputFormatter::class);
+
+        // Act & Assert
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'artisan command'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('FORMATTED: Artisan is the command-line interface included with Laravel.')
+            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('falls back to raw markdown when no formatter is configured', function (): void {
+        // Arrange - Ensure no formatter is configured
+        Config::set('artisense.formatter', null);
+
+        // Act & Assert
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'artisan command'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
+            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('falls back to basic formatting when formatter class is invalid', function (): void {
+        // Arrange - Set an invalid formatter class
+        Config::set('artisense.formatter', 'NonExistentFormatter');
+
+        // Act & Assert
+        $this->artisan(QueryDocsCommand::class, ['--query' => 'artisan command'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Failed to format markdown with the configured formatter, using basic formatting.')
+            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
+            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
     });
 });

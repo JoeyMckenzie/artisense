@@ -126,18 +126,51 @@ describe(AskDocsCommand::class, function (): void {
         ]);
 
         // Act & Assert - We're not checking specific formatting here, just that it doesn't error
-        // and that the content is still present
+        // and that the content is still present, but h1 headings should be skipped
         $this->artisan(AskDocsCommand::class, ['--query' => 'markdown formatting'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Markdown Test - Formatting')
-            ->expectsOutputToContain('Heading 1')
-            ->expectsOutputToContain('Heading 2')
+            ->doesntExpectOutputToContain('Heading 1') // h1 headings should be skipped
+            ->expectsOutputToContain('Heading 2') // h2 headings should be displayed
+            ->expectsOutputToContain('Heading 3') // h3 headings should be displayed
             ->expectsOutputToContain('Bold text')
             ->expectsOutputToContain('List item 1')
             ->expectsOutputToContain('Numbered item 1')
             ->expectsOutputToContain('Code block')
             ->expectsOutputToContain('Inline `code` example')
             ->expectsOutputToContain('Link text')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('excludes h1 headings from search results', function (): void {
+        // Arrange - Insert test data with h1 heading (title equals heading)
+        $this->connection->table('docs')->insert([
+            'title' => 'H1 Heading',
+            'heading' => 'H1 Heading', // This is an h1 heading (title equals heading)
+            'markdown' => "# H1 Heading\n\nThis is content under an h1 heading.",
+            'content' => 'H1 Heading This is content under an h1 heading.',
+            'path' => 'h1-test.md',
+            'version' => $this->version->value,
+            'link' => 'https://laravel.com/docs/12.x/h1-test',
+        ]);
+
+        // Insert a regular section with h2 heading
+        $this->connection->table('docs')->insert([
+            'title' => 'Test Document',
+            'heading' => 'H2 Section', // This is not an h1 heading (title doesn't equal heading)
+            'markdown' => "## H2 Section\n\nThis is content under an h2 heading.",
+            'content' => 'H2 Section This is content under an h2 heading.',
+            'path' => 'h2-test.md',
+            'version' => $this->version->value,
+            'link' => 'https://laravel.com/docs/12.x/h2-test',
+        ]);
+
+        // Act & Assert - Verify that h1 headings are excluded from search results
+        $this->artisan(AskDocsCommand::class, ['--query' => 'heading'])
+            ->expectsOutput('🔍 Found relevant information:')
+            ->doesntExpectOutputToContain('H1 Heading') // h1 heading should be excluded
+            ->expectsOutputToContain('Test Document - H2 Section') // h2 heading should be included
+            ->expectsOutputToContain('This is content under an h2 heading.')
             ->assertExitCode(Command::SUCCESS);
     });
 });

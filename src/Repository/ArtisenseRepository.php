@@ -50,6 +50,7 @@ final readonly class ArtisenseRepository
 
     /**
      * Search the documentation using full-text search.
+     * Excludes h1 headings (where heading equals title) as these are typically tables of content.
      *
      * @return stdClass[] The search results
      */
@@ -57,6 +58,7 @@ final readonly class ArtisenseRepository
     {
         return $this->db->table('docs')
             ->whereRaw('content MATCH ?', [$query])
+            ->whereRaw('heading != title') // Exclude h1 headings (where heading equals title)
             ->orderByRaw('rank')
             ->limit($limit)
             ->get(['title', 'heading', 'markdown', 'link'])

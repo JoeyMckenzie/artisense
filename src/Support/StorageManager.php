@@ -16,17 +16,12 @@ final readonly class StorageManager
         $this->storageKey = 'artisense';
     }
 
-    public function ensureDirectoriesExist(): void
+    public function ensureDocStorageDirectoryExists(): void
     {
-        $paths = [
-            storage_path($this->storageKey),
-            storage_path(sprintf('%s/docs', $this->storageKey)),
-        ];
+        $path = storage_path($this->storageKey);
 
-        foreach ($paths as $path) {
-            if (! is_dir($path)) {
-                mkdir($path);
-            }
+        if (! is_dir($path)) {
+            mkdir($path);
         }
     }
 

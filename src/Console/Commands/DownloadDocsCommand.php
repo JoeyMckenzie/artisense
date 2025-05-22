@@ -24,7 +24,7 @@ final class DownloadDocsCommand extends Command
         StorageManager $storage,
         VersionManager $versionManager,
     ): int {
-        $this->info('🔧 Downloading documents...');
+        $this->line('🔧 Downloading documents...');
 
         try {
             $version = $versionManager->getVersion();
@@ -45,7 +45,7 @@ final class DownloadDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $storage->ensureDirectoriesExist();
+        $storage->ensureDocStorageDirectoryExists();
         $storage->put('laravel-docs.zip', $response->body());
 
         $this->line('Unzipping docs...');
@@ -58,23 +58,11 @@ final class DownloadDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $this->line('Moving docs to subfolder...');
-
-        $extractedFolder = pathinfo($version->getExtractedFileName(), PATHINFO_FILENAME);
-        $markdownFiles = $storage->files($extractedFolder);
-
-        foreach ($markdownFiles as $file) {
-            $source = $storage->path("$extractedFolder/$file");
-            $target = $storage->path('docs/'.basename($file));
-            $files->move($source, $target);
-        }
-
         $this->line('Removing temporary files...');
 
         $storage->delete('laravel-docs.zip');
-        $storage->deleteDirectory($extractedFolder);
 
-        $this->info('✅ Laravel docs downloaded and ready!');
+        $this->line('✅ Laravel docs downloaded and ready!');
 
         return self::SUCCESS;
     }

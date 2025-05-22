@@ -27,19 +27,17 @@ describe(StorageManager::class, function (): void {
     it('ensures directories exist', function (): void {
         // Arrange
         expect(File::exists(storage_path('artisense')))->toBeFalse();
-        expect(File::exists(storage_path('artisense/docs')))->toBeFalse();
 
         // Act
-        $this->storageManager->ensureDirectoriesExist();
+        $this->storageManager->ensureDocStorageDirectoryExists();
 
         // Assert
         expect(File::exists(storage_path('artisense')))->toBeTrue();
-        expect(File::exists(storage_path('artisense/docs')))->toBeTrue();
     });
 
     it('puts content into a file', function (): void {
         // Arrange
-        $this->storageManager->ensureDirectoriesExist();
+        $this->storageManager->ensureDocStorageDirectoryExists();
         $testContent = 'Test content for file';
         $testFilePath = 'test-file.txt';
 
@@ -62,20 +60,16 @@ describe(StorageManager::class, function (): void {
 
     it('returns a list of files in a directory', function (): void {
         // Arrange
-        $this->storageManager->ensureDirectoriesExist();
+        $this->storageManager->ensureDocStorageDirectoryExists();
         $this->storageManager->put('file1.txt', 'Content 1');
         $this->storageManager->put('file2.txt', 'Content 2');
-        $this->storageManager->put('docs/file3.txt', 'Content 3');
 
         // Act
         $files = $this->storageManager->files('');
-        $docFiles = $this->storageManager->files('docs');
 
         // Assert
         expect($files)->toContain('file1.txt');
         expect($files)->toContain('file2.txt');
-        expect($files)->toContain('docs');
-        expect($docFiles)->toContain('file3.txt');
     });
 
     it('constructs the correct path', function (): void {
@@ -91,7 +85,7 @@ describe(StorageManager::class, function (): void {
 
     it('deletes a file', function (): void {
         // Arrange
-        $this->storageManager->ensureDirectoriesExist();
+        $this->storageManager->ensureDocStorageDirectoryExists();
         $testFilePath = 'file-to-delete.txt';
         $this->storageManager->put($testFilePath, 'Delete me');
         $fullPath = storage_path('artisense/'.$testFilePath);
@@ -106,7 +100,7 @@ describe(StorageManager::class, function (): void {
 
     it('deletes a directory', function (): void {
         // Arrange
-        $this->storageManager->ensureDirectoriesExist();
+        $this->storageManager->ensureDocStorageDirectoryExists();
         $testDirPath = 'test-dir';
         $fullPath = storage_path('artisense/'.$testDirPath);
         File::makeDirectory($fullPath);

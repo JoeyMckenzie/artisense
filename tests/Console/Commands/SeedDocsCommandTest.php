@@ -12,8 +12,9 @@ covers(SeedDocsCommand::class);
 
 describe(SeedDocsCommand::class, function (): void {
     beforeEach(function (): void {
-        File::ensureDirectoryExists($this->storagePath.'/docs');
-        File::copy(__DIR__.'/../../Fixtures/artisan.md', $this->storagePath.'/docs/artisan.md');
+        $this->docsPath = $this->storagePath.'/'.$this->version->getExtractedFolderName();
+        File::ensureDirectoryExists($this->docsPath);
+        File::copy(__DIR__.'/../../Fixtures/artisan.md', $this->docsPath.'/artisan.md');
     });
 
     it('parses markdown docs and stores them in the database', function (): void {
@@ -42,7 +43,7 @@ describe(SeedDocsCommand::class, function (): void {
     it('handles files without headings', function (): void {
         // Arrange
         File::put(
-            $this->storagePath.'/docs/no-headings.md',
+            $this->docsPath.'/no-headings.md',
             'This is a test file with no headings.'
         );
 
@@ -123,7 +124,7 @@ describe(SeedDocsCommand::class, function (): void {
     it('skips non-markdown files', function (): void {
         // Arrange
         File::put(
-            $this->storagePath.'/docs/not-markdown.txt',
+            $this->docsPath.'/not-markdown.txt',
             'This is not a markdown file.'
         );
 
@@ -144,8 +145,8 @@ describe(SeedDocsCommand::class, function (): void {
 
     it('handles empty docs directory', function (): void {
         // Arrange
-        File::deleteDirectory($this->storagePath.'/docs');
-        File::ensureDirectoryExists($this->storagePath.'/docs');
+        File::deleteDirectory($this->docsPath.'');
+        File::ensureDirectoryExists($this->docsPath.'');
 
         // Act
         $this->artisan(SeedDocsCommand::class)
@@ -163,7 +164,7 @@ describe(SeedDocsCommand::class, function (): void {
     it('extracts and stores content without HTML tags', function (): void {
         // Arrange
         $markdownWithHtml = "# Test Heading\n\nThis is a <strong>test</strong> with <em>HTML</em> tags.";
-        File::put($this->storagePath.'/docs/html-test.md', $markdownWithHtml);
+        File::put($this->docsPath.'/html-test.md', $markdownWithHtml);
 
         // Act
         $this->artisan(SeedDocsCommand::class)
@@ -184,7 +185,7 @@ describe(SeedDocsCommand::class, function (): void {
     it('handles different heading levels correctly', closure: function (): void {
         // Arrange
         $markdownWithHeadings = "# H1 Heading\n\nContent 1\n\n## H2 Heading\n\nContent 2\n\n### H3 Heading\n\nContent 3";
-        File::put($this->storagePath.'/docs/headings-test.md', $markdownWithHeadings);
+        File::put($this->docsPath.'/headings-test.md', $markdownWithHeadings);
 
         // Act
         $this->artisan(SeedDocsCommand::class)

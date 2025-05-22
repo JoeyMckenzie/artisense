@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Repository\ArtisenseRepository;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Artisense\Support\StorageManager;
+use Artisense\Support\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -29,10 +31,19 @@ final class SeedDocsCommand extends Command
         Filesystem $files,
         StorageManager $disk,
         ArtisenseRepositoryManager $repositoryManager,
+        VersionManager $versionManager,
     ): int {
         $this->line('🔍 Preparing database...');
 
-        $docsPath = $disk->path('docs');
+        try {
+            $version = $versionManager->getVersion();
+        } catch (DocumentationVersionException $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
+
+        $docsPath = $disk->path($version->getExtractedFolderName());
         $this->files = $files;
         $this->repository = $repositoryManager->newConnection();
         $this->repository->createDocsTable();

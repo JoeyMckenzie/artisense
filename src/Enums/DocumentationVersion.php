@@ -14,13 +14,13 @@ enum DocumentationVersion: string
 
     case MASTER = 'master';
 
-    public function getExtractedFileName(): string
+    public function getExtractedFolderName(): string
     {
         return match ($this) {
-            self::VERSION_12 => 'docs-12.x.zip',
-            self::VERSION_11 => 'docs-11.x.zip',
-            self::VERSION_10 => 'docs-10.x.zip',
-            self::MASTER => 'docs-master.zip'
+            self::VERSION_12 => 'docs-12.x',
+            self::VERSION_11 => 'docs-11.x',
+            self::VERSION_10 => 'docs-10.x',
+            self::MASTER => 'docs-master'
         };
     }
 

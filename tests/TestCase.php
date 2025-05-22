@@ -6,7 +6,6 @@ namespace Artisense\Tests;
 
 use Artisense\ArtisenseServiceProvider;
 use Artisense\Enums\DocumentationVersion;
-use Artisense\Support\StorageManager;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;

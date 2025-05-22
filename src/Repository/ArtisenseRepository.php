@@ -25,8 +25,11 @@ final readonly class ArtisenseRepository
 
     public function createDocsTable(): void
     {
-        $this->db->statement('DROP TABLE IF EXISTS docs');
-        $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
+        $exists = $this->db->selectOne("SELECT name FROM sqlite_master WHERE type='table' AND name='docs'");
+
+        if ($exists === null) {
+            $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
+        }
     }
 
     public function createEntry(
@@ -59,6 +62,7 @@ final readonly class ArtisenseRepository
         return $this->db->table('docs')
             ->whereRaw('content MATCH ?', [$query])
             ->whereRaw('heading != title') // Exclude h1 headings (where heading equals title)
+            ->where('version', $this->version->value)
             ->orderByRaw('rank')
             ->limit($limit)
             ->get(['title', 'heading', 'markdown', 'link'])

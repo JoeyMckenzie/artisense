@@ -70,7 +70,7 @@
         "fmt": "vendor/bin/pint -vv",
         "fmt:test": "vendor/bin/pint --test",
         "lint": "XDEBUG_MODE=off vendor/bin/phpstan analyze",
-        "lint:ci": "vendor/bin/phpstan analyze --error-format=github",
+        "lint:ci": "XDEBUG_MODE=off vendor/bin/phpstan analyze --error-format=github",
         "refactor": "vendor/bin/rector process",
         "refactor:test": "vendor/bin/rector process --dry-run",
         "typos": "vendor/bin/peck",

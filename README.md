@@ -15,20 +15,10 @@ Laravel docs from the comfort of your terminal.
 
 - [Getting started](#getting-started)
 - [Usage](#usage)
-- [Power of Ten Rules](#original-nasa-power-of-ten-rules)
-- [Rules]()
-    - [1. Avoid complex flow constructs](#rule-1)
-    - [2. All loops must have fixed bounds](#rule-2)
-    - [3. Avoid heap memory allocation after initialization](#rule-3)
-    - [4. Restrict functions to a single printed page](#rule-4)
-    - [5. Use a minimum of two runtime assertions per function](#rule-5)
-    - [6. Restrict the scope of data to the smallest possible](#rule-6)
-    - [7. Check the return value of all non-void functions](#rule-7)
-    - [8. Use the preprocessor only for header files and simple macros](#rule-8)
-    - [9. Limit pointer use to a single dereference](#rule-9)
-    - [10. Compile with all possible warnings active](#rule-10)
-- [References](#references)
-- [Contributing](#references)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
+- [Credits](#credits)
+- [License](#license)
 
 ## Getting started
 

@@ -43,7 +43,7 @@ final class DownloadDocsCommand extends Command
         $this->line('🔧 Downloading documents...');
 
         if ($flags['docVersion'] !== null) {
-            $versionManager->setVersion($flags['docVersion']);
+            $versionManager->setVersion((string) $flags['docVersion']);
         }
 
         try {

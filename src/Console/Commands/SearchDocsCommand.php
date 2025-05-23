@@ -60,7 +60,7 @@ final class SearchDocsCommand extends Command
         );
 
         if ($flags['docVersion'] !== null) {
-            $versionManager->setVersion($flags['docVersion']);
+            $versionManager->setVersion((string) $flags['docVersion']);
         }
 
         $repository = $repositoryManager->newConnection();

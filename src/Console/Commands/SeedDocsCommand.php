@@ -55,7 +55,7 @@ final class SeedDocsCommand extends Command
         }
 
         if ($flags['docVersion'] !== null) {
-            $versionManager->setVersion($flags['docVersion']);
+            $versionManager->setVersion((string) $flags['docVersion']);
         }
 
         $this->line('🔍 Preparing database...');

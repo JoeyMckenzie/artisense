@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\QueryDocsCommand;
+use Artisense\Enums\DocumentationVersion;
+use Artisense\Support\Services\VersionManager;
 use Artisense\Tests\Fixtures\TestOutputFormatter;
 use Illuminate\Support\Facades\Config;
 use Symfony\Component\Console\Command\Command;
@@ -213,5 +215,31 @@ MARKDOWN;
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('allows for searching specific version if flag is passed', function (): void {
+        // Arrange
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
+
+        $this->db->insert([
+            'title' => 'Artisan Console (11.x)',
+            'heading' => 'Introduction (11.x)',
+            'markdown' => 'Artisan is the command-line interface included with Laravel. (11.x)',
+            'content' => 'Artisan is the command-line interface included with Laravel. (11.x)',
+            'path' => 'artisan.md',
+            'version' => DocumentationVersion::VERSION_11->value,
+            'link' => 'https://laravel.com/docs/11.x/artisan#introduction',
+        ]);
+
+        // Act & Assert
+        $this->artisan(QueryDocsCommand::class, ['--docVersion' => '11.x'])
+            ->expectsQuestion('What are you looking for?', 'artisan command')
+            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsOutputToContain('Artisan Console (11.x) - Introduction (11.x)')
+            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel. (11.x)')
+            ->expectsOutputToContain('Learn more: https://laravel.com/docs/11.x/artisan#introduction')
+            ->assertExitCode(Command::SUCCESS);
+
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_11);
     });
 });

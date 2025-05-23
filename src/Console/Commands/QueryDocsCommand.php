@@ -8,6 +8,7 @@ use Artisense\Contracts\OutputFormatterContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\InvalidOutputFormatterException;
 use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Validation\Factory as Validator;
@@ -30,6 +31,7 @@ final class QueryDocsCommand extends Command
         ArtisenseRepositoryManager $repositoryManager,
         Config $config,
         Validator $validator,
+        VersionManager $versionManager,
     ): int {
         $this->config = $config;
 
@@ -51,10 +53,14 @@ final class QueryDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $question = $query ?? text(
+        $question = $flags['query'] ?? text(
             label: 'What are you looking for?',
             required: true
         );
+
+        if ($flags['docVersion'] !== null) {
+            $versionManager->setVersion($flags['docVersion']);
+        }
 
         $repository = $repositoryManager->newConnection();
         $results = $repository->search($question, (int) $flags['limit']);

@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\SeedDocsCommand;
+use Artisense\Enums\DocumentationVersion;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Support\Facades\File;
 use Symfony\Component\Console\Command\Command;
 
@@ -233,5 +235,49 @@ describe(SeedDocsCommand::class, function (): void {
             ->get(['title'])
             ->first();
         expect($row->title)->toBe('H1 Heading');
+    });
+
+    it('allows seeding separate versions if a version flag is passed', function (): void {
+        // Arrange
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
+
+        // Simulate the docs previously being downloaded for a different version
+        $docsPath = $this->storagePath.'/'.DocumentationVersion::VERSION_11->getExtractedFolderName();
+        File::ensureDirectoryExists($docsPath);
+        File::copy(__DIR__.'/../../Fixtures/artisan-11.md', $docsPath.'/artisan.md');
+
+        $this->artisan(SeedDocsCommand::class, ['--docVersion' => DocumentationVersion::VERSION_11->value])
+            ->expectsOutput('🔍 Preparing database...')
+            ->expectsOutput('Found 1 docs files...')
+            ->expectsOutput('✅ Docs parsed and stored!')
+            ->assertExitCode(Command::SUCCESS);
+
+        // Connect to the database and verify content was stored
+        $result = $this->db->get();
+        expect(count($result))->toBeGreaterThan(0);
+
+        // Verify specific content was parsed correctly
+        $row = $this->db
+            ->where(['heading' => 'Artisan Console (11.x)'])
+            ->get(['title', 'version', 'link'])
+            ->first();
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_11)
+            ->and($row)->not->toBeNull()
+            ->and($row->title)->toBe('Artisan Console (11.x)')
+            ->and($row->version)->toBe(DocumentationVersion::VERSION_11->value)
+            ->and($row->link)->toContain('https://laravel.com/docs/11.x/artisan#artisan-console');
+    });
+
+    it('fails seeding separate versions if a version flag is passed and docs have not been downloaded', function (): void {
+        // Arrange
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
+
+        // Act & Assert
+        $this->artisan(SeedDocsCommand::class, ['--docVersion' => DocumentationVersion::VERSION_11->value])
+            ->expectsOutput('🔍 Preparing database...')
+            ->expectsOutput('Documentation for version "11.x" does not exist, please first run the download command.')
+            ->doesntExpectOutput('Found 1 docs files...')
+            ->doesntExpectOutput('✅ Docs parsed and stored!')
+            ->assertExitCode(Command::FAILURE);
     });
 });

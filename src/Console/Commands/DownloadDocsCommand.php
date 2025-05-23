@@ -42,8 +42,12 @@ final class DownloadDocsCommand extends Command
 
         $this->line('🔧 Downloading documents...');
 
+        if ($flags['docVersion'] !== null) {
+            $versionManager->setVersion($flags['docVersion']);
+        }
+
         try {
-            $version = $versionManager->getVersion($flags['docVersion']);
+            $version = $versionManager->getVersion();
         } catch (DocumentationVersionException $e) {
             $this->error($e->getMessage());
 

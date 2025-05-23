@@ -6,6 +6,7 @@ namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Enums\DocumentationVersion;
+use Artisense\Support\Services\VersionManager;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Http;
@@ -149,5 +150,34 @@ describe(DownloadDocsCommand::class, function (): void {
         // The storage directory should exist with the zip file
         expect(File::exists($this->storagePath))->toBeTrue()
             ->and(File::exists($this->storagePath.'/laravel-docs.zip'))->toBeTrue();
+    });
+
+    it('allows for versions to be specified as flags', function (): void {
+        // Arrange
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
+
+        $updatedVersion = DocumentationVersion::VERSION_11;
+        $zipPath = __DIR__.'/../../Fixtures/docs-11.x.zip';
+        $zipContent = file_get_contents($zipPath);
+
+        Http::fake([
+            $updatedVersion->getZipUrl() => Http::response($zipContent),
+        ]);
+
+        // Act & Assert
+        $this->artisan(DownloadDocsCommand::class, ['--docVersion' => $updatedVersion->value])
+            ->expectsOutput('🔧 Downloading documents...')
+            ->expectsOutput('Using version 11.x, fetching Laravel docs from GitHub...')
+            ->doesntExpectOutput('Failed to download docs from GitHub.')
+            ->doesntExpectOutputToContain('Failed to unzip docs: ')
+            ->expectsOutput('Unzipping docs...')
+            ->expectsOutput('✅ Laravel docs downloaded and ready!')
+            ->assertExitCode(Command::SUCCESS);
+
+        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_11) // Version should be overridden by flag
+            ->and(File::exists($this->storagePath.'/docs-12.x'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/docs-11.x'))->toBeTrue()
+            ->and(File::isEmptyDirectory($this->storagePath.'/docs-11.x'))->toBeFalse()
+            ->and(File::exists($this->storagePath.'/laravel-docs.zip'))->toBeFalse();
     });
 });

@@ -53,10 +53,14 @@ final class SeedDocsCommand extends Command
             return self::FAILURE;
         }
 
+        if ($flags['docVersion'] !== null) {
+            $versionManager->setVersion($flags['docVersion']);
+        }
+
         $this->line('🔍 Preparing database...');
 
         try {
-            $this->version = $versionManager->getVersion($flags['docVersion']);
+            $this->version = $versionManager->getVersion();
         } catch (DocumentationVersionException $e) {
             $this->error($e->getMessage());
 
@@ -67,7 +71,7 @@ final class SeedDocsCommand extends Command
         $this->files = $files;
 
         if (! $this->files->isDirectory($docsPath)) {
-            $this->error(sprintf('Documentation for version "%s" does not exist, please first run the download command.', $docsPath));
+            $this->error(sprintf('Documentation for version "%s" does not exist, please first run the download command.', $this->version->value));
 
             return self::FAILURE;
         }

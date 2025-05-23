@@ -23,6 +23,7 @@ _ide_helper_models.php
 /.idea
 /.fleet
 /.vscode
+.DS_Store
 
 # Misc
 phpunit.xml

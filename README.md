@@ -1,11 +1,10 @@
 <div align="center" style="padding-top: 2rem;">
     <img src="art/logo.png" height="300" width="300" alt="logo"/>
+        <img src="https://img.shields.io/packagist/v/joeymckenzie/artisense.svg?style=flat-square" alt="packgist downloads" />
+        <img src="https://img.shields.io/github/actions/workflow/status/joeymckenzie/artisense/run-ci.yml?branch=main&label=ci&style=flat-square" alt="ci" />
+        <img src="https://img.shields.io/github/actions/workflow/status/joeymckenzie/artisense/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square" alt="packgist downloads" />
+        <img src="https://img.shields.io/packagist/dt/joeymckenzie/artisense.svg?style=flat-square" alt="packgist downloads" />
 </div>
-
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/artisense/artisense.svg?style=flat-square)](https://packagist.org/packages/artisense/artisense)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/artisense/artisense/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/artisense/artisense/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/artisense/artisense/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/artisense/artisense/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/artisense/artisense.svg?style=flat-square)](https://packagist.org/packages/artisense/artisense)
 
 # Artisense 📕
 
@@ -15,6 +14,7 @@ Laravel docs from the comfort of your terminal.
 
 - [Getting started](#getting-started)
 - [Usage](#usage)
+    - [Flags](#flags)
 - [Changelog](#changelog)
 - [Contributing](#contributing)
 - [Credits](#credits)

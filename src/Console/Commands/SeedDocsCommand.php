@@ -39,6 +39,7 @@ final class SeedDocsCommand extends Command
         VersionManager $versionManager,
         Factory $validator
     ): int {
+        /** @var array{docVersion: ?string} $flags */
         $flags = [
             'docVersion' => $this->option('docVersion'),
         ];

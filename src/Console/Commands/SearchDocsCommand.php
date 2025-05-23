@@ -35,6 +35,7 @@ final class SearchDocsCommand extends Command
     ): int {
         $this->config = $config;
 
+        /** @var array{search: ?string, limit: int, docVersion: ?string} $flags */
         $flags = [
             'search' => $this->option('search'),
             'limit' => $this->option('limit'),

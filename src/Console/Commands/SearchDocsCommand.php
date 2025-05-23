@@ -200,7 +200,7 @@ final class SearchDocsCommand extends Command
 
                 continue;
             }
-            if ($inList && mb_trim($line) === '') {
+            if ($inList && mb_trim($line ?? '') === '') {
                 $inList = false;
             }
 
@@ -208,8 +208,8 @@ final class SearchDocsCommand extends Command
             $line = preg_replace_callback('/\[([^\]]+)\]\(([^)]+)\)/', fn (array $matches): string => '[<fg=blue>'.$matches[1].'</>](<fg=blue>'.$matches[2].'</>)', (string) $line);
 
             // Output regular text
-            if (mb_trim($line) !== '') {
-                $this->line($line);
+            if (mb_trim($line ?? '') !== '') {
+                $this->line((string) $line);
             } else {
                 $this->line('');
             }

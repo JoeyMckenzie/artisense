@@ -44,6 +44,7 @@ final readonly class ArtisenseRepository
         string $content,
         string $path,
         string $link,
+        ?DocumentationVersion $version = null,
     ): void {
         $this->db->table('docs')->insert([
             'title' => $title,
@@ -51,7 +52,7 @@ final readonly class ArtisenseRepository
             'markdown' => $markdown,
             'content' => $content,
             'path' => $path,
-            'version' => $this->version->value,
+            'version' => $version !== null ? $version->value : $this->version->value,
             'link' => sprintf('%s%s', $this->baseUrl, $link),
         ]);
     }
@@ -59,12 +60,12 @@ final readonly class ArtisenseRepository
     /**
      * @return stdClass[]
      */
-    public function search(string $query, int $limit = 5): array
+    public function search(string $query, int $limit = 5, ?DocumentationVersion $version = null): array
     {
         return $this->db->table('docs')
             ->whereRaw('content MATCH ?', [$query])
             ->whereRaw('heading != title') // Exclude h1 headings (where heading equals title)
-            ->where('version', $this->version->value)
+            ->where('version', $version !== null ? $version->value : $this->version->value)
             ->orderByRaw('rank')
             ->limit($limit)
             ->get(['title', 'heading', 'markdown', 'link'])

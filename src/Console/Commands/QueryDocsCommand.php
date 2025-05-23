@@ -5,18 +5,22 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\Contracts\OutputFormatterContract;
+use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\InvalidOutputFormatterException;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Contracts\Validation\Factory as Validator;
+use Illuminate\Validation\Rule;
 use ReflectionClass;
 
 use function Laravel\Prompts\text;
 
 final class QueryDocsCommand extends Command
 {
-    public $signature = 'artisense:docs {--query= : Search query for documentation} {--limit=3 : Number of results to return}';
+    public $signature = 'artisense:docs {--query= : Search query for documentation}
+                                        {--docVersion= : Version of Laravel documentation to use}
+                                        {--limit=3 : Number of results to return}';
 
     public $description = 'Ask questions about Laravel documentation and get relevant information.';
 
@@ -29,10 +33,16 @@ final class QueryDocsCommand extends Command
     ): int {
         $this->config = $config;
 
-        $query = $this->option('query');
-        $limit = $this->option('limit');
-        $rule = $validator->make(['limit' => $limit], [
+        $flags = [
+            'query' => $this->option('query'),
+            'limit' => $this->option('limit'),
+            'docVersion' => $this->option('docVersion'),
+        ];
+
+        $rule = $validator->make($flags, [
+            // TODO: Add validation for query to include at least a few words
             'limit' => 'nullable|integer|max:10|min:1',
+            'docVersion' => ['nullable', Rule::enum(DocumentationVersion::class)],
         ]);
 
         if ($rule->fails()) {
@@ -47,7 +57,7 @@ final class QueryDocsCommand extends Command
         );
 
         $repository = $repositoryManager->newConnection();
-        $results = $repository->search($question, (int) $limit);
+        $results = $repository->search($question, (int) $flags['limit']);
 
         if (count($results) === 0) {
             $this->info('No results found for your query.');

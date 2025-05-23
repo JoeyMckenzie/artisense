@@ -4,30 +4,46 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Support\Services\StorageManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
-use Illuminate\Filesystem\Filesystem as Files;
+use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Http\Client\Factory as Http;
+use Illuminate\Validation\Rule;
 use ZipArchive;
 
 final class DownloadDocsCommand extends Command
 {
-    public $signature = 'artisense:download-docs';
+    public $signature = 'artisense:download-docs {--docVersion= : Version of Laravel documentation to use}';
 
     public $description = 'Downloads and unzips Artisense by downloading Laravel documentation.';
 
     public function handle(
-        Files $files,
         Http $http,
         StorageManager $storage,
         VersionManager $versionManager,
+        Factory $validator
     ): int {
+        $flags = [
+            'docVersion' => $this->option('docVersion'),
+        ];
+
+        $rule = $validator->make($flags, [
+            'docVersion' => ['nullable', Rule::enum(DocumentationVersion::class)],
+        ]);
+
+        if ($rule->fails()) {
+            $this->error($rule->errors()->first());
+
+            return self::FAILURE;
+        }
+
         $this->line('🔧 Downloading documents...');
 
         try {
-            $version = $versionManager->getVersion();
+            $version = $versionManager->getVersion($flags['docVersion']);
         } catch (DocumentationVersionException $e) {
             $this->error($e->getMessage());
 

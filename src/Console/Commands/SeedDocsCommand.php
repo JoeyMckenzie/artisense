@@ -4,20 +4,23 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Repository\ArtisenseRepository;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Artisense\Support\Services\StorageManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Validation\Factory;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\Finder\SplFileInfo;
 
 final class SeedDocsCommand extends Command
 {
-    public $signature = 'artisense:seed-docs';
+    public $signature = 'artisense:seed-docs {--docVersion= : Version of Laravel documentation to use}';
 
     public $description = 'Parses and seeds the database with Laravel documentation.';
 
@@ -27,24 +30,48 @@ final class SeedDocsCommand extends Command
 
     private ArtisenseRepository $repository;
 
+    private ?DocumentationVersion $version = null;
+
     public function handle(
         Filesystem $files,
         StorageManager $disk,
         ArtisenseRepositoryManager $repositoryManager,
         VersionManager $versionManager,
+        Factory $validator
     ): int {
+        $flags = [
+            'docVersion' => $this->option('docVersion'),
+        ];
+
+        $rule = $validator->make($flags, [
+            'docVersion' => ['nullable', Rule::enum(DocumentationVersion::class)],
+        ]);
+
+        if ($rule->fails()) {
+            $this->error($rule->errors()->first());
+
+            return self::FAILURE;
+        }
+
         $this->line('🔍 Preparing database...');
 
         try {
-            $version = $versionManager->getVersion();
+            $this->version = $versionManager->getVersion($flags['docVersion']);
         } catch (DocumentationVersionException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;
         }
 
-        $docsPath = $disk->path($version->getExtractedFolderName());
+        $docsPath = $disk->path($this->version->getExtractedFolderName());
         $this->files = $files;
+
+        if (! $this->files->isDirectory($docsPath)) {
+            $this->error(sprintf('Documentation for version "%s" does not exist, please first run the download command.', $docsPath));
+
+            return self::FAILURE;
+        }
+
         $this->repository = $repositoryManager->newConnection();
         $this->repository->createDocsTable();
         $this->converter = new CommonMarkConverter();

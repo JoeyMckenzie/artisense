@@ -19,8 +19,12 @@ final readonly class VersionManager
     /**
      * @throws DocumentationVersionException
      */
-    public function getVersion(): DocumentationVersion
+    public function getVersion(?string $version = null): DocumentationVersion
     {
+        if ($version !== null) {
+            return DocumentationVersion::from($version);
+        }
+
         $value = $this->config->get('artisense.version');
 
         if ($value instanceof DocumentationVersion) {

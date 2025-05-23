@@ -3,7 +3,12 @@ name: Run CI
 on:
   push:
     paths:
-      - main
+      - '**.php'
+      - '.github/workflows/run-ci.yml'
+      - 'phpunit.xml.dist'
+      - 'phpstan.neon.dist'
+      - 'composer.json'
+      - 'composer.lock'
 
 jobs:
   ci:

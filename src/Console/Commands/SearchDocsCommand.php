@@ -17,9 +17,9 @@ use ReflectionClass;
 
 use function Laravel\Prompts\text;
 
-final class QueryDocsCommand extends Command
+final class SearchDocsCommand extends Command
 {
-    public $signature = 'artisense:docs {--query= : Search query for documentation}
+    public $signature = 'artisense:docs {--search= : Search query for documentation}
                                         {--docVersion= : Version of Laravel documentation to use}
                                         {--limit=3 : Number of results to return}';
 
@@ -36,13 +36,13 @@ final class QueryDocsCommand extends Command
         $this->config = $config;
 
         $flags = [
-            'query' => $this->option('query'),
+            'search' => $this->option('search'),
             'limit' => $this->option('limit'),
             'docVersion' => $this->option('docVersion'),
         ];
 
         $rule = $validator->make($flags, [
-            // TODO: Add validation for query to include at least a few words
+            // TODO: Add validation for search terms to include at least a few words
             'limit' => 'nullable|integer|max:10|min:1',
             'docVersion' => ['nullable', Rule::enum(DocumentationVersion::class)],
         ]);
@@ -53,7 +53,7 @@ final class QueryDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $question = $flags['query'] ?? text(
+        $question = $flags['search'] ?? text(
             label: 'What are you looking for?',
             required: true
         );

@@ -1,5 +1,5 @@
 <div align="center" style="padding-top: 2rem;">
-    <img src="art/logo.png" height="400" width="400" alt="logo"/>
+    <img src="art/logo.png" height="300" width="300" alt="logo"/>
 </div>
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/artisense/artisense.svg?style=flat-square)](https://packagist.org/packages/artisense/artisense)
@@ -96,7 +96,7 @@ return [
 First, prepare artisense by running the install command:
 
 ```bash
-$ php artisan artisense:install
+php artisan artisense:install
 ```
 
 The install command will do a few things:
@@ -122,19 +122,86 @@ return [
 You may also install versions by explicitly passing a `--version` flag to the install command:
 
 ```php
-$ php artisan artisense:install --version "12.x" // (10.x, 11.x, master, etc.)
+php artisan artisense:install --version "12.x" // (10.x, 11.x, master, etc.)
 ```
 
 ## Usage
 
+Artisense uses SQLite's full-text search extension [FTS5](https://www.sqlite.org/fts5.html) to store Laravel
+documentation.
+Once you've successfully installed a version of the documentation using artisense, you may use the `docs` artisense
+artisan
+command to search relevant sections
+
 ```bash
-$ php artisan artisense:docs --query "install reverb"
+php artisan artisense:docs
+
+ ┌ What are you looking for? ───────────────────────────────────┐
+ │ enum validation                                              │
+ └──────────────────────────────────────────────────────────────┘
 ```
 
-## Testing
+If any relevant documentation is found, artisense will display it within your terminal:
+
+> 🔍 Found relevant information:
+>
+> Validation - enum
+> #### enum
+>
+> The `Enum` rule is a class based rule that validates whether the field under validation contains a valid enum value.
+> The `Enum` rule accepts the name of the enum as its only constructor argument. When validating primitive values, a
+> backed Enum should be provided to the `Enum` rule:
+>
+> ```php
+> use App\Enums\ServerStatus;
+> use Illuminate\Validation\Rule;
+> 
+> $request->validate([
+>     'status' => [Rule::enum(ServerStatus::class)],
+> ]);
+> The `Enum` rule's `only` and `except` methods may be used to limit which enum cases should be considered valid:
+>
+> ```php
+> Rule::enum(ServerStatus::class)
+>     ->only([ServerStatus::Pending, ServerStatus::Active]);
+> 
+> Rule::enum(ServerStatus::class)
+>     ->except([ServerStatus::Pending, ServerStatus::Active]);
+> ```
+>
+> The `when` method may be used to conditionally modify the `Enum` rule:
+>
+> ```php
+> use Illuminate\Support\Facades\Auth;
+> use Illuminate\Validation\Rule;
+> 
+> Rule::enum(ServerStatus::class)
+>     ->when(
+>         Auth::user()->isAdmin(),
+>         fn ($rule) => $rule->only(...),
+>         fn ($rule) => $rule->only(...),
+>     );
+> ```
+>
+> <a name="rule-exclude"></a>
+>
+> Learn more: https://laravel.com/docs/12.x/validation#enum
+
+By default, artisense returns the raw markdown it that was used to find the relevant section. A link to the section
+within the documentation is also included.
+
+Artisense uses [Laravel Prompts](https://laravel.com/docs/12.x/prompts), though you may also pass a `--search` flag to
+the `docs` command:
 
 ```bash
-composer run test
+php artisan artisense:docs --search "enum validation"
+```
+
+Using full-text search, artisense will attempt to find relevant sections, returning **three** entries by default. You
+may configure this with the `--limit` flag for the `docs` command:
+
+```bash
+php artisan artisense:docs --search "enum validation" --limit 5
 ```
 
 ## Changelog
@@ -144,10 +211,6 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 ## Contributing
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Credits
 

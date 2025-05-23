@@ -6,7 +6,7 @@ namespace Artisense;
 
 use Artisense\Console\Commands\DownloadDocsCommand;
 use Artisense\Console\Commands\InstallCommand;
-use Artisense\Console\Commands\QueryDocsCommand;
+use Artisense\Console\Commands\SearchDocsCommand;
 use Artisense\Console\Commands\SeedDocsCommand;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -28,7 +28,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
                 InstallCommand::class,
                 DownloadDocsCommand::class,
                 SeedDocsCommand::class,
-                QueryDocsCommand::class,
+                SearchDocsCommand::class,
             ]);
 
             $this->publishes([

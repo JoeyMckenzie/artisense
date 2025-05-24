@@ -122,7 +122,7 @@ Artisense uses SQLite's full-text search extension [FTS5](https://www.sqlite.org
 documentation.
 Once you've successfully installed a version of the documentation using artisense, you may use the `docs` artisense
 artisan
-command to search relevant sections
+command to search relevant sections:
 
 ```bash
 php artisan artisense:docs

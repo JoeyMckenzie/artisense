@@ -26,6 +26,7 @@ final class DownloadDocsCommand extends Command
         VersionManager $versionManager,
         Factory $validator
     ): int {
+        /** @var array{docVersion: ?string} $flags */
         $flags = [
             'docVersion' => $this->option('docVersion'),
         ];
@@ -43,7 +44,7 @@ final class DownloadDocsCommand extends Command
         $this->line('🔧 Downloading documents...');
 
         if ($flags['docVersion'] !== null) {
-            $versionManager->setVersion((string) $flags['docVersion']);
+            $versionManager->setVersion($flags['docVersion']);
         }
 
         try {

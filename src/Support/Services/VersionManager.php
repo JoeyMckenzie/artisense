@@ -44,9 +44,13 @@ final readonly class VersionManager
         return $version;
     }
 
-    public function setVersion(string $versionValue): void
+    public function setVersion(string|DocumentationVersion $versionValue): void
     {
-        $version = DocumentationVersion::from($versionValue);
-        $this->config->set('artisense.version', $version->value);
+        if (is_string($versionValue)) {
+            $version = DocumentationVersion::from($versionValue);
+            $this->config->set('artisense.version', $version->value);
+        } else {
+            $this->config->set('artisense.version', $versionValue->value);
+        }
     }
 }

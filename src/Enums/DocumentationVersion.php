@@ -14,6 +14,19 @@ enum DocumentationVersion: string
 
     case MASTER = 'master';
 
+    /**
+     * @return string[]
+     */
+    public static function values(): array
+    {
+        /** @var string[] $values */
+        $values = collect(self::cases())
+            ->map(fn (self $case): string => $case->value)
+            ->toArray();
+
+        return $values;
+    }
+
     public function getExtractedFolderName(): string
     {
         return match ($this) {

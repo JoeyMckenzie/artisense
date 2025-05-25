@@ -33,14 +33,13 @@ final readonly class DownloadDocsAction
             throw ArtisenseException::from($message);
         }
 
-        $this->storage->ensureDocStorageDirectoryExists();
-        $this->storage->put('laravel-docs.zip', $response->body());
+        $this->storage->ensureStorageDirectoriesExists();
+        $path = sprintf('zips%slaravel-docs-%s.zip', DIRECTORY_SEPARATOR, $version->value);
+        $this->storage->put($path, $response->body());
 
-        $extractedZipPath = $this->storage->path('laravel-docs.zip');
+        $extractedZipPath = $this->storage->path($path);
         $extractPath = $this->storage->getBasePath();
         $this->unzipDocsFile($extractedZipPath, $extractPath);
-
-        $this->storage->delete('laravel-docs.zip');
     }
 
     /**

@@ -12,7 +12,7 @@ covers(StorageManager::class);
 
 describe(StorageManager::class, function (): void {
     beforeEach(function (): void {
-        $this->storageManager = new StorageManager();
+        $this->storageManager = app(StorageManager::class);
         File::deleteDirectory(storage_path('artisense'));
     });
 
@@ -29,7 +29,7 @@ describe(StorageManager::class, function (): void {
         expect(File::exists(storage_path('artisense')))->toBeFalse();
 
         // Act
-        $this->storageManager->ensureDocStorageDirectoryExists();
+        $this->storageManager->ensureStorageDirectoriesExists();
 
         // Assert
         expect(File::exists(storage_path('artisense')))->toBeTrue();
@@ -37,7 +37,7 @@ describe(StorageManager::class, function (): void {
 
     it('puts content into a file', function (): void {
         // Arrange
-        $this->storageManager->ensureDocStorageDirectoryExists();
+        $this->storageManager->ensureStorageDirectoriesExists();
         $testContent = 'Test content for file';
         $testFilePath = 'test-file.txt';
 
@@ -60,7 +60,7 @@ describe(StorageManager::class, function (): void {
 
     it('returns a list of files in a directory', function (): void {
         // Arrange
-        $this->storageManager->ensureDocStorageDirectoryExists();
+        $this->storageManager->ensureStorageDirectoriesExists();
         $this->storageManager->put('file1.txt', 'Content 1');
         $this->storageManager->put('file2.txt', 'Content 2');
 
@@ -85,7 +85,7 @@ describe(StorageManager::class, function (): void {
 
     it('deletes a file', function (): void {
         // Arrange
-        $this->storageManager->ensureDocStorageDirectoryExists();
+        $this->storageManager->ensureStorageDirectoriesExists();
         $testFilePath = 'file-to-delete.txt';
         $this->storageManager->put($testFilePath, 'Delete me');
         $fullPath = storage_path('artisense/'.$testFilePath);
@@ -100,7 +100,7 @@ describe(StorageManager::class, function (): void {
 
     it('deletes a directory', function (): void {
         // Arrange
-        $this->storageManager->ensureDocStorageDirectoryExists();
+        $this->storageManager->ensureStorageDirectoriesExists();
         $testDirPath = 'test-dir';
         $fullPath = storage_path('artisense/'.$testDirPath);
         File::makeDirectory($fullPath);

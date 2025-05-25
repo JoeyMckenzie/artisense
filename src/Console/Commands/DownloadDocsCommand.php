@@ -66,7 +66,7 @@ final class DownloadDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $storage->ensureDocStorageDirectoryExists();
+        $storage->ensureStorageDirectoriesExists();
         $storage->put('laravel-docs.zip', $response->body());
 
         $this->line('Unzipping docs...');

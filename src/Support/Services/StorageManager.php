@@ -16,9 +16,26 @@ final readonly class StorageManager
         $this->storageKey = 'artisense';
     }
 
-    public function ensureDocStorageDirectoryExists(): void
+    public function ensureStorageDirectoriesExists(): void
     {
-        $path = storage_path($this->storageKey);
+        $storagePath = storage_path($this->storageKey);
+        $paths = [
+            'zips',
+        ];
+
+        foreach ($paths as $path) {
+            $folderPath = sprintf('%s%s%s', $storagePath, DIRECTORY_SEPARATOR, $path);
+            if (! is_dir($folderPath)) {
+                mkdir($folderPath, recursive: true);
+            }
+        }
+
+    }
+
+    public function ensureDirectoryExists(string $path): void
+    {
+        $storagePath = storage_path($this->storageKey);
+        $path = sprintf('%s%s%s', $storagePath, DIRECTORY_SEPARATOR, $path);
 
         if (! is_dir($path)) {
             mkdir($path);
@@ -27,7 +44,7 @@ final readonly class StorageManager
 
     public function put(string $filepath, string $contents): void
     {
-        $filepath = sprintf('%s/%s', $this->storageKey, $filepath);
+        $filepath = sprintf('%s%s%s', $this->storageKey, DIRECTORY_SEPARATOR, $filepath);
         file_put_contents(storage_path($filepath), $contents);
     }
 
@@ -48,7 +65,7 @@ final readonly class StorageManager
 
     public function path(string $filepath): string
     {
-        $path = sprintf('%s/%s', $this->storageKey, $filepath);
+        $path = sprintf('%s%s%s', $this->storageKey, DIRECTORY_SEPARATOR, $filepath);
 
         return storage_path($path);
     }

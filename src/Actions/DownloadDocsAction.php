@@ -30,7 +30,7 @@ final readonly class DownloadDocsAction
 
         if (! $response->ok()) {
             $message = sprintf('Failed to download docs from GitHub. Response code: %s', $response->status());
-            throw ArtisenseException::from($message);
+            throw new ArtisenseException($message);
         }
 
         $this->storage->ensureStorageDirectoriesExists();
@@ -50,7 +50,7 @@ final readonly class DownloadDocsAction
         $zip = new ZipArchive;
 
         if ($zip->open($extractedZipPath) !== true) {
-            throw ArtisenseException::from('Failed to unzip docs.');
+            throw new ArtisenseException('Failed to unzip docs.');
         }
 
         $zip->extractTo($extractPath);

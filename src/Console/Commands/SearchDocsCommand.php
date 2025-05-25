@@ -6,6 +6,7 @@ namespace Artisense\Console\Commands;
 
 use Artisense\Contracts\OutputFormatterContract;
 use Artisense\Enums\DocumentationVersion;
+use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Exceptions\InvalidOutputFormatterException;
 use Artisense\Repository\ArtisenseRepositoryManager;
 use Artisense\Support\Services\VersionManager;
@@ -63,6 +64,14 @@ final class SearchDocsCommand extends Command
             $versionManager->setVersion((string) $flags['docVersion']);
         }
 
+        try {
+            $version = $versionManager->getVersion();
+        } catch (DocumentationVersionException $e) {
+            $this->error(sprintf('Failed to get version: %s', $e->getMessage()));
+
+            return self::FAILURE;
+        }
+
         $repository = $repositoryManager->newConnection();
         $results = $repository->search($question, (int) $flags['limit']);
 
@@ -88,7 +97,7 @@ final class SearchDocsCommand extends Command
             /** @var string $link */
             $link = $result->link;
 
-            $this->info("<fg=yellow;options=bold>$title - $heading</>");
+            $this->info("<fg=yellow;options=bold>$title - $heading - $version->value</>");
 
             try {
                 $formatted = $this->getFormattedOutput($markdown);
@@ -191,7 +200,7 @@ final class SearchDocsCommand extends Command
             $line = preg_replace_callback('/\*\*([^*]+)\*\*/', fn (array $matches): string => '<options=bold>**'.$matches[1].'**</>', (string) $line);
 
             // Handle lists
-            if (preg_match('/^(\s*)([\-\*]|\d+\.)\s+(.+)$/', (string) $line, $matches)) {
+            if (preg_match('/^(\s*)([\-*]|\d+\.)\s+(.+)$/', (string) $line, $matches)) {
                 $indent = $matches[1];
                 $bullet = $matches[2];
                 $text = $matches[3];

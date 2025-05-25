@@ -46,7 +46,7 @@ describe(SearchDocsCommand::class, function (): void {
         $this->artisan(SearchDocsCommand::class)
             ->expectsQuestion('What are you looking for?', 'artisan command')
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
@@ -65,7 +65,7 @@ describe(SearchDocsCommand::class, function (): void {
         $this->artisan(SearchDocsCommand::class)
             ->expectsQuestion('What are you looking for?', 'artisan')
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan Console - Writing Commands')
             ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
             ->assertExitCode(Command::SUCCESS);
@@ -75,7 +75,7 @@ describe(SearchDocsCommand::class, function (): void {
         // Act & Assert
         $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
@@ -95,7 +95,7 @@ describe(SearchDocsCommand::class, function (): void {
         // Act & Assert
         $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan'])
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan Console - Writing Commands')
             ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
             ->assertExitCode(Command::SUCCESS);
@@ -172,7 +172,7 @@ MARKDOWN;
         $this->artisan(SearchDocsCommand::class, ['--search' => 'heading'])
             ->expectsOutput('🔍 Found relevant information:')
             ->doesntExpectOutputToContain('H1 Heading') // h1 heading should be excluded
-            ->expectsOutputToContain('Test Document - H2 Section') // h2 heading should be included
+            ->expectsOutputToContain('Test Document - H2 Section - 12.x') // h2 heading should be included
             ->expectsOutputToContain('This is content under an h2 heading.')
             ->assertExitCode(Command::SUCCESS);
     });
@@ -184,7 +184,7 @@ MARKDOWN;
         // Act & Assert
         $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('FORMATTED: Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
@@ -197,7 +197,7 @@ MARKDOWN;
         // Act & Assert
         $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
@@ -210,7 +210,7 @@ MARKDOWN;
         // Act & Assert
         $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction')
+            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Failed to format markdown with the configured formatter, using basic formatting.')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
@@ -235,7 +235,7 @@ MARKDOWN;
         $this->artisan(SearchDocsCommand::class, ['--docVersion' => '11.x'])
             ->expectsQuestion('What are you looking for?', 'artisan command')
             ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console (11.x) - Introduction (11.x)')
+            ->expectsOutputToContain('Artisan Console (11.x) - Introduction (11.x) - 11.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel. (11.x)')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/11.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);

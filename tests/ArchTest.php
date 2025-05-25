@@ -10,10 +10,9 @@ arch('All test files are strictly typed')
     ->expect('Tests\\')
     ->toUseStrictTypes();
 
-arch('All actions are immutable')
+arch('All actions are final')
     ->expect('Artisense\\Actions\\')
     ->toBeFinal()
-    ->toBeReadonly()
     ->toHaveSuffix('Action');
 
 arch('All enums are string backed')

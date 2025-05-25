@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\Actions\DownloadDocsAction;
+use Artisense\Actions\SeedDocsAction;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Exceptions\DocumentationVersionException;
@@ -21,7 +22,8 @@ final class InstallCommand extends Command
     public function handle(
         Kernel $artisan,
         VersionManager $versionManager,
-        DownloadDocsAction $downloadDocsAction
+        DownloadDocsAction $downloadDocsAction,
+        SeedDocsAction $seedDocsAction,
     ): int {
         $this->info('🔧 Installing artisense...');
 
@@ -49,19 +51,19 @@ final class InstallCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("️📕 Using version $version->value");
+        $this->line("️Using version $version->value...");
 
         try {
+            $this->line('Downloading documentation...');
             $downloadDocsAction->handle($version);
+
+            $this->line('Storing documentation...');
+            $seedDocsAction->handle($version);
         } catch (ArtisenseException $e) {
-            $this->error(sprintf('Failed to download docs: %s', $e->getMessage()));
+            $this->error(sprintf('Failed to install: %s', $e->getMessage()));
 
             return self::FAILURE;
         }
-
-        $this->info('ℹ️ Documents extracted, seeding database...');
-
-        $artisan->call(SeedDocsCommand::class, ['--docVersion' => $this->option('docVersion')]);
 
         $this->info('✅  Artisense is ready!');
 

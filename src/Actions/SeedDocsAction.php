@@ -20,6 +20,8 @@ final class SeedDocsAction
 
     private ArtisenseRepository $repository;
 
+    private DocumentationVersion $version;
+
     public function __construct(
         private readonly StorageManager $disk,
         private readonly Filesystem $files,
@@ -33,6 +35,7 @@ final class SeedDocsAction
      */
     public function handle(DocumentationVersion $version): void
     {
+        $this->version = $version;
         $docsPath = $this->disk->path($version->getExtractedFolderName());
 
         if (! $this->files->isDirectory($docsPath)) {
@@ -104,7 +107,7 @@ final class SeedDocsAction
     {
         $link = sprintf('%s#%s', str_replace('.md', '', $path), $this->slugify($heading));
         $content = strip_tags($this->converter->convert($markdown)->getContent());
-        $this->repository->createEntry($title, $heading, $markdown, $content, $path, $link);
+        $this->repository->createEntry($title, $heading, $markdown, $content, $path, $link, $this->version);
     }
 
     private function slugify(string $text): string

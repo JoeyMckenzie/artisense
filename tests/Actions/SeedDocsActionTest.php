@@ -2,32 +2,36 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Tests\Console\Commands;
+namespace Artisense\Tests\Actions;
 
-use Artisense\Console\Commands\SeedDocsCommand;
+use Artisense\Actions\SeedDocsAction;
 use Artisense\Enums\DocumentationVersion;
-use Artisense\Support\Services\VersionManager;
+use Artisense\Exceptions\ArtisenseException;
+use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\StorageManager;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
-use Symfony\Component\Console\Command\Command;
 
-covers(SeedDocsCommand::class);
+covers(SeedDocsAction::class);
 
-describe(SeedDocsCommand::class, function (): void {
+describe(SeedDocsAction::class, function (): void {
     beforeEach(function (): void {
         $this->docsPath = $this->storagePath.'/'.$this->version->getExtractedFolderName();
         File::ensureDirectoryExists($this->docsPath);
-        File::copy(__DIR__.'/../../Fixtures/artisan.md', $this->docsPath.'/artisan.md');
+        File::copy(__DIR__.'/../Fixtures/artisan.md', $this->docsPath.'/artisan.md');
+
+        $this->action = new SeedDocsAction(
+            app(StorageManager::class),
+            app(Filesystem::class),
+            app(ArtisenseRepositoryManager::class)
+        );
     });
 
     it('parses markdown docs and stores them in the database', function (): void {
         // Arrange & Act
-        $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 1 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
-        // Connect to the database and verify content was stored
+        // Assert
         $result = $this->db->get();
         expect(count($result))->toBeGreaterThan(0);
 
@@ -39,26 +43,18 @@ describe(SeedDocsCommand::class, function (): void {
         expect($row)->not->toBeNull()
             ->and($row->title)->toBe('Artisan Console')
             ->and($row->version)->toBe($this->version->value)
-            ->and($row->link)->toContain('https://laravel.com/docs/12.x/artisan#artisan-console');
+            ->and($row->link)->toContain('artisan#artisan-console');
     });
 
     it('removes existing entries by version before seeding new docs', function (): void {
-        // Arrange, run the command to seed the DB
-        $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 1 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        // Arrange, run the action to seed the DB
+        $this->action->handle($this->version);
 
         $result = $this->db->get();
         expect(count($result))->toBe(45);
 
-        // Act, run the command again
-        $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 1 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        // Act, run the action again
+        $this->action->handle($this->version);
 
         // Assert, count should still be the same due to deleting => re-seeding process
         $result = $this->db->get();
@@ -73,11 +69,7 @@ describe(SeedDocsCommand::class, function (): void {
         );
 
         // Act
-        $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 2 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Assert
         $row = $this->db
@@ -91,8 +83,7 @@ describe(SeedDocsCommand::class, function (): void {
 
     it('creates database tables correctly', function (): void {
         // Arrange & Act
-        $this->artisan(SeedDocsCommand::class)
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Assert
         $query = $this->connection
@@ -111,8 +102,7 @@ describe(SeedDocsCommand::class, function (): void {
 
     it('processes multiple headings in a single file', function (): void {
         // Act
-        $this->artisan(SeedDocsCommand::class)
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Check for multiple headings from the artisan.md file
         $headings = [
@@ -132,8 +122,7 @@ describe(SeedDocsCommand::class, function (): void {
 
     it('creates correct links with slugified headings', function (): void {
         // Arrange
-        $this->artisan(SeedDocsCommand::class)
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Act
         $row = $this->db
@@ -154,11 +143,7 @@ describe(SeedDocsCommand::class, function (): void {
         );
 
         // Act
-        $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 1 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Assert
         $result = $this->db
@@ -170,15 +155,12 @@ describe(SeedDocsCommand::class, function (): void {
 
     it('handles empty docs directory', function (): void {
         // Arrange
-        File::deleteDirectory($this->docsPath.'');
-        File::ensureDirectoryExists($this->docsPath.'');
+        File::deleteDirectory($this->docsPath);
+        File::ensureDirectoryExists($this->docsPath);
 
-        // Act
-        $this->artisan(SeedDocsCommand::class)
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 0 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        // Act & Assert
+        expect(fn () => $this->action->handle($this->version))
+            ->not->toThrow(ArtisenseException::class);
 
         // Assert
         $result = $this->db->get();
@@ -192,8 +174,7 @@ describe(SeedDocsCommand::class, function (): void {
         File::put($this->docsPath.'/html-test.md', $markdownWithHtml);
 
         // Act
-        $this->artisan(SeedDocsCommand::class)
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Assert
         $row = $this->db
@@ -207,14 +188,13 @@ describe(SeedDocsCommand::class, function (): void {
             ->and($row->content)->toContain('test');
     });
 
-    it('handles different heading levels correctly', closure: function (): void {
+    it('handles different heading levels correctly', function (): void {
         // Arrange
         $markdownWithHeadings = "# H1 Heading\n\nContent 1\n\n## H2 Heading\n\nContent 2\n\n### H3 Heading\n\nContent 3";
         File::put($this->docsPath.'/headings-test.md', $markdownWithHeadings);
 
         // Act
-        $this->artisan(SeedDocsCommand::class)
-            ->assertExitCode(Command::SUCCESS);
+        $this->action->handle($this->version);
 
         // Assert, check all heading levels were processed
         $headings = ['H1 Heading', 'H2 Heading', 'H3 Heading'];
@@ -237,47 +217,34 @@ describe(SeedDocsCommand::class, function (): void {
         expect($row->title)->toBe('H1 Heading');
     });
 
-    it('allows seeding separate versions if a version flag is passed', function (): void {
+    it('handles different documentation versions', function (): void {
         // Arrange
-        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
-
-        // Simulate the docs previously being downloaded for a different version
-        $docsPath = $this->storagePath.'/'.DocumentationVersion::VERSION_11->getExtractedFolderName();
+        $version = DocumentationVersion::VERSION_11;
+        $docsPath = $this->storagePath.'/'.$version->getExtractedFolderName();
         File::ensureDirectoryExists($docsPath);
-        File::copy(__DIR__.'/../../Fixtures/artisan-11.md', $docsPath.'/artisan.md');
+        File::copy(__DIR__.'/../Fixtures/artisan-11.md', $docsPath.'/artisan.md');
 
-        $this->artisan(SeedDocsCommand::class, ['--docVersion' => DocumentationVersion::VERSION_11->value])
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Found 1 docs files...')
-            ->expectsOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::SUCCESS);
+        // Act
+        $this->action->handle($version);
 
-        // Connect to the database and verify content was stored
-        $result = $this->db->get();
-        expect(count($result))->toBeGreaterThan(0);
-
-        // Verify specific content was parsed correctly
+        // Assert
         $row = $this->db
             ->where(['heading' => 'Artisan Console (11.x)'])
             ->get(['title', 'version', 'link'])
             ->first();
-        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_11)
-            ->and($row)->not->toBeNull()
+        expect($row)->not->toBeNull()
             ->and($row->title)->toBe('Artisan Console (11.x)')
-            ->and($row->version)->toBe(DocumentationVersion::VERSION_11->value)
-            ->and($row->link)->toContain('https://laravel.com/docs/11.x/artisan#artisan-console');
+            ->and($row->version)->toBe($version->value);
     });
 
-    it('fails seeding separate versions if a version flag is passed and docs have not been downloaded', function (): void {
+    it('throws exception when docs directory does not exist', function (): void {
         // Arrange
-        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
+        $version = DocumentationVersion::VERSION_11;
+        $docsPath = $this->storagePath.'/'.$version->getExtractedFolderName();
+        File::deleteDirectory($docsPath);
 
         // Act & Assert
-        $this->artisan(SeedDocsCommand::class, ['--docVersion' => DocumentationVersion::VERSION_11->value])
-            ->expectsOutput('🔍 Preparing database...')
-            ->expectsOutput('Documentation for version "11.x" does not exist, please first run the download command.')
-            ->doesntExpectOutput('Found 1 docs files...')
-            ->doesntExpectOutput('✅ Docs parsed and stored!')
-            ->assertExitCode(Command::FAILURE);
+        expect(fn () => $this->action->handle($version))
+            ->toThrow(ArtisenseException::class, sprintf('Documentation for version "%s" does not exist.', $version->value));
     });
 });

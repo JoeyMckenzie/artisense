@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Actions;
 
-use Artisense\Contracts\Actions\ActionContract;
+use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Repository\ArtisenseRepository;
@@ -15,7 +15,7 @@ use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;
 use Symfony\Component\Finder\SplFileInfo;
 
-final class SeedDocsAction implements ActionContract
+final class SeedDocsAction implements SeedDocsActionContract
 {
     private CommonMarkConverter $converter;
 

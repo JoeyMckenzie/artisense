@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Actions;
 
-use Artisense\Contracts\Actions\ActionContract;
+use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Support\Services\StorageManager;
@@ -12,7 +12,7 @@ use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as Http;
 use ZipArchive;
 
-final readonly class DownloadDocsAction implements ActionContract
+final readonly class DownloadDocsAction implements DownloadDocsActionContract
 {
     public function __construct(
         private Http $http,

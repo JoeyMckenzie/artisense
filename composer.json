@@ -19,8 +19,7 @@
         "php": "^8.4",
         "ext-zip": "*",
         "illuminate/contracts": "^12.0",
-        "league/commonmark": "^2.7",
-        "prism-php/prism": "^0.68.0"
+        "league/commonmark": "^2.7"
     },
     "require-dev": {
         "ext-pdo": "*",
@@ -55,6 +54,7 @@
     },
     "scripts": {
         "post-autoload-dump": [
+            "@ensure-views-dir",
             "@clear",
             "@prepare"
         ],
@@ -95,6 +95,7 @@
             "@fix",
             "@ci"
         ],
+        "ensure-views-dir": "mkdir -p vendor/orchestra/testbench-core/laravel/storage/framework/views",
         "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
         "build": "@php vendor/bin/testbench workbench:build --ansi",
         "serve": [

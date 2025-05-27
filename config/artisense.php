@@ -25,7 +25,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Specifies the version of the documentation to use, with both numbered.
-    | versions and master available. By default, the most recent numbered
+    | Versions and master available. By default, the most recent numbered
     | is used if no version is specified while attempting to download.
     |
     */
@@ -44,5 +44,19 @@ return [
     */
 
     'formatter' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Open AI Integration
+    |--------------------------------------------------------------------------
+    |
+    | Specifies the Open AI API key and organization for an enhanced artisense
+    | experience. If enabled, artisense will use embeddings to search docs
+    | rather than full-text search with SQLite that is enabled by default.
+    |
+    */
+
+    'openai_api_key' => null,
+    'openai_organization' => null,
 
 ];

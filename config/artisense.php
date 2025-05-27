@@ -57,6 +57,6 @@ return [
     */
 
     'openai_api_key' => null,
-    'openai_organization' => null,
+    'openai_chunk_size' => 100,
 
 ];

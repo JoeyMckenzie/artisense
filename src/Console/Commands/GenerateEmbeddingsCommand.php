@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Actions\GenerateEmbeddingsAction;
 use Artisense\Console\Concerns\ValidatesVersionOption;
-use Artisense\Contracts\Actions\DownloadDocsActionContract;
-use Artisense\Contracts\Actions\SeedDocsActionContract;
-use Artisense\Exceptions\ArtisenseException;
 use Artisense\Exceptions\DocumentationVersionException;
+use Artisense\Repository\ArtisenseRepositoryManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Config\Repository as Config;
+use stdClass;
 
 final class GenerateEmbeddingsCommand extends Command
 {
@@ -22,8 +23,9 @@ final class GenerateEmbeddingsCommand extends Command
 
     public function handle(
         VersionManager $versionManager,
-        DownloadDocsActionContract $downloadDocsAction,
-        SeedDocsActionContract $seedDocsAction,
+        ArtisenseRepositoryManager $repositoryManager,
+        Config $config,
+        GenerateEmbeddingsAction $action
     ): int {
         $this->info('🔧 Generating embeddings...');
 
@@ -37,17 +39,23 @@ final class GenerateEmbeddingsCommand extends Command
 
         $this->line("️Using version $version->value...");
 
-        try {
-            $this->line('Downloading documentation...');
-            $downloadDocsAction->handle($version);
+        $repository = $repositoryManager->newConnection();
+        $entries = $repository->getContentEntriesForVersion($version);
+        $chunkSize = $config->get('artisense.openai_chunk_size');
 
-            $this->line('Storing documentation...');
-            $seedDocsAction->handle($version);
-        } catch (ArtisenseException $e) {
-            $this->error(sprintf('Failed to install: %s', $e->getMessage()));
+        if ($chunkSize === null) {
+            $chunkSize = 100;
+        }
+
+        if (! is_int($chunkSize)) {
+            $this->error('Invalid chunk size, must be an integer.');
 
             return self::FAILURE;
         }
+
+        $entries
+            ->chunk($chunkSize)
+            ->each(fn (stdClass $chunk) => $action->handle($version));
 
         $this->info('✅  Artisense is ready!');
 

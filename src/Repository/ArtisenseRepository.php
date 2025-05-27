@@ -7,6 +7,7 @@ namespace Artisense\Repository;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Database\ConnectionInterface;
+use Illuminate\Support\Collection;
 use stdClass;
 
 final readonly class ArtisenseRepository
@@ -28,7 +29,7 @@ final readonly class ArtisenseRepository
         $exists = $this->db->selectOne("SELECT name FROM sqlite_master WHERE type='table' AND name='docs'");
 
         if ($exists === null) {
-            $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
+            $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, embedding, path, version, link)');
         }
     }
 
@@ -70,5 +71,15 @@ final readonly class ArtisenseRepository
             ->limit($limit)
             ->get(['title', 'heading', 'markdown', 'link'])
             ->all();
+    }
+
+    /**
+     * @return Collection<int, stdClass>
+     */
+    public function getContentEntriesForVersion(?DocumentationVersion $version = null): Collection
+    {
+        return $this->db->table('docs')
+            ->where('version', $version !== null ? $version->value : $this->version->value)
+            ->pluck('content');
     }
 }

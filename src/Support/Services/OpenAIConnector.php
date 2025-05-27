@@ -33,17 +33,13 @@ final readonly class OpenAIConnector
 
         $response = $this->http
             ->withHeaders([
-                'headers' => [
-                    'Authorization' => "Bearer $apiKey",
-                    'Content-Type' => 'application/json',
-                ],
+                'Authorization' => "Bearer $apiKey",
+                'Content-Type' => 'application/json',
             ])
             ->post(self::BASE_URL.'/embeddings', [
-                [
-                    'input' => $text,
-                    'model' => 'text-embedding-ada-002',
-                    'encoding_format' => 'float',
-                ],
+                'input' => $text,
+                'model' => 'text-embedding-ada-002',
+                'encoding_format' => 'float',
             ]);
 
         if (! $response->ok()) {

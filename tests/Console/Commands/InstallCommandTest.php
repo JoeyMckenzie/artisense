@@ -71,7 +71,7 @@ describe(InstallCommand::class, function (): void {
         // Act & Assert
         $this->artisan(InstallCommand::class, ['--docVersion' => $invalidVersion])
             ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput(sprintf('Invalid version "%s" provided, please use one of the following: %s', $invalidVersion, $validVersions))
+            ->expectsOutput("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
             ->assertExitCode(Command::FAILURE);
     });
 
@@ -82,7 +82,7 @@ describe(InstallCommand::class, function (): void {
         // Act & Assert
         $this->artisan(InstallCommand::class)
             ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput('Failed to get version: Documentation version must be configured in your config file.')
+            ->expectsOutput('Documentation version must be configured in your config file.')
             ->assertExitCode(Command::FAILURE);
     });
 

@@ -12,20 +12,20 @@ use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 
-final class InstallCommand extends Command
+final class GenerateEmbeddingsCommand extends Command
 {
     use ValidatesVersionOption;
 
-    public $signature = 'artisense:install {--docVersion= : Version of Laravel documentation to use}';
+    public $signature = 'artisense:generate-embeddings {--docVersion= : Version of Laravel documentation to use}';
 
-    public $description = 'Installs Artisesnse for the project.';
+    public $description = 'Generates and stores emebeddings for the locally stored documentation.';
 
     public function handle(
         VersionManager $versionManager,
         DownloadDocsActionContract $downloadDocsAction,
         SeedDocsActionContract $seedDocsAction,
     ): int {
-        $this->info('🔧 Installing artisense...');
+        $this->info('🔧 Generating embeddings...');
 
         try {
             $version = $this->getVersion($versionManager);

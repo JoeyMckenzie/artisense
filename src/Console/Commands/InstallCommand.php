@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
-use Artisense\Actions\DownloadDocsAction;
-use Artisense\Actions\SeedDocsAction;
+use Artisense\Contracts\Actions\DownloadDocsActionContract;
+use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
-use Illuminate\Contracts\Console\Kernel;
 
 final class InstallCommand extends Command
 {
@@ -20,10 +19,9 @@ final class InstallCommand extends Command
     public $description = 'Installs Artisesnse for the project.';
 
     public function handle(
-        Kernel $artisan,
         VersionManager $versionManager,
-        DownloadDocsAction $downloadDocsAction,
-        SeedDocsAction $seedDocsAction,
+        DownloadDocsActionContract $downloadDocsAction,
+        SeedDocsActionContract $seedDocsAction,
     ): int {
         $this->info('🔧 Installing artisense...');
 

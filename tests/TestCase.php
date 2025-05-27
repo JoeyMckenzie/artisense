@@ -19,7 +19,7 @@ class TestCase extends Orchestra
     protected string $storagePath;
 
     protected string $dbPath {
-        get => $this->storagePath . '/artisense.sqlite';
+        get => $this->storagePath.'/artisense.sqlite';
     }
 
     protected DocumentationVersion $version;
@@ -39,10 +39,24 @@ class TestCase extends Orchestra
         self::setUpTestDatabase();
     }
 
+    #[Override]
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+        File::deleteDirectory($this->storagePath);
+    }
+
+    protected function getPackageProviders($app): array
+    {
+        return [
+            ArtisenseServiceProvider::class,
+        ];
+    }
+
     private function setUpVersion(): void
     {
         $this->version = DocumentationVersion::VERSION_12;
-        Config::set('artisense.version', $this->version);
+        Config::set('artisense.version', $this->version->value);
     }
 
     private function setUpStorage(): void
@@ -64,19 +78,5 @@ class TestCase extends Orchestra
         ]);
 
         $this->connection = DB::connection('artisense');
-    }
-
-    #[Override]
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-        File::deleteDirectory($this->storagePath);
-    }
-
-    protected function getPackageProviders($app): array
-    {
-        return [
-            ArtisenseServiceProvider::class,
-        ];
     }
 }

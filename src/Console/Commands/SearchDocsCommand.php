@@ -16,13 +16,13 @@ use Illuminate\Contracts\Validation\Factory as Validator;
 use Illuminate\Validation\Rule;
 use ReflectionClass;
 
-use function Laravel\Prompts\text;
+use function Laravel\Prompts\search;
 
 final class SearchDocsCommand extends Command
 {
     public $signature = 'artisense:search {--query= : Search query for documentation}
                                           {--docVersion= : Version of Laravel documentation to use}
-                                          {--limit=3 : Number of results to return}';
+                                          {--limit=5 : Number of results to return}';
 
     public $description = 'Ask questions about Laravel documentation and get relevant information.';
 
@@ -54,11 +54,6 @@ final class SearchDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $query = $flags['query'] ?? text(
-            label: 'What are you looking for?',
-            required: true
-        );
-
         if ($flags['docVersion'] !== null) {
             $versionManager->setVersion((string) $flags['docVersion']);
         }
@@ -72,36 +67,35 @@ final class SearchDocsCommand extends Command
         }
 
         $limit = (int) $flags['limit'];
-        $results = DocumentationEntry::query()
-            ->whereRaw('content MATCH ?', [$query])
-            ->whereRaw('heading != title') // Exclude h1 headings (where heading equals title)
-            ->where('version', $version->value)
-            ->orderByRaw('rank')
-            ->limit($limit)
-            ->get(['title', 'heading', 'markdown', 'link'])
-            ->all();
+        $result = search(
+            label: 'Enter a search term to find relevant information:',
+            options: fn (string $value): array => $this->getSearchResults($value, $version, $limit),
+            placeholder: 'Installing Reverb, handling Stripe webhooks, etc.',
+            scroll: 10,
+            hint: 'Use at least a few characters to get relevant results.',
+        );
 
-        if (count($results) === 0) {
-            $this->info('No results found for your query.');
+        if (is_string($result)) {
+            $rowid = $this->getRowId($result);
+            $entry = DocumentationEntry::query()
+                ->where('rowid', $rowid)
+                ->first([
+                    'title',
+                    'heading',
+                    'markdown',
+                    'link',
+                ]);
 
-            return self::SUCCESS;
-        }
+            if ($entry === null) {
+                $this->error(sprintf('No content found for rowid %d.', $rowid));
 
-        $this->info('🔍 Found relevant information:');
-        $this->newLine();
+                return self::FAILURE;
+            }
 
-        foreach ($results as $result) {
-            /** @var string $title */
-            $title = $result->title;
-
-            /** @var string $heading */
-            $heading = $result->heading;
-
-            /** @var string $markdown */
-            $markdown = $result->markdown;
-
-            /** @var string $link */
-            $link = $result->link;
+            $title = $entry->title;
+            $heading = $entry->heading;
+            $markdown = $entry->markdown;
+            $link = $entry->link;
 
             $this->info("<fg=yellow;options=bold>$title - $heading - $version->value</>");
 
@@ -119,6 +113,41 @@ final class SearchDocsCommand extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getSearchResults(string $value, DocumentationVersion $version, int $limit): array
+    {
+        if (mb_strlen($value) > 3) {
+            $value = '"'.str_replace('"', '', $value).'"';
+            $results = DocumentationEntry::query()
+                ->whereRaw('content MATCH ?', [$value])
+                ->whereRaw('heading != title')
+                ->where('version', $version->value)
+                ->orderByRaw('rank')
+                ->limit($limit)
+                ->get(['rowid', 'title', 'heading', 'version'])
+                ->all();
+
+            /** @var string[] $values */
+            $values = collect($results)
+                ->map(fn (DocumentationEntry $result): string => sprintf('%d - %s - %s - %s', $result->rowid, $result->version, $result->title, $result->heading))
+                ->toArray();
+
+            return $values;
+        }
+
+        return [];
+    }
+
+    private function getRowId(string $result): int
+    {
+        $parsed = explode(' - ', $result);
+        $rowid = $parsed[0];
+
+        return (int) $rowid;
     }
 
     private function getFormattedOutput(string $markdown): string

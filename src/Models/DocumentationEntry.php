@@ -7,6 +7,7 @@ namespace Artisense\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @property int $rowid
  * @property string $title
  * @property string $heading
  * @property string $markdown

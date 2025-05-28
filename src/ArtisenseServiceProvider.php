@@ -10,6 +10,7 @@ use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\SearchDocsCommand;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
+use Illuminate\Contracts\Config\Repository;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -24,7 +25,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
         );
     }
 
-    public function boot(): void
+    public function boot(Repository $config): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -41,6 +42,14 @@ final class ArtisenseServiceProvider extends ServiceProvider
 
             Model::unguard();
             Model::shouldBeStrict();
+
+            $config->set([
+                'database.connections.artisense' => [
+                    'driver' => 'sqlite',
+                    'database' => storage_path('artisense/artisense.sqlite'),
+                    'prefix' => '',
+                ],
+            ]);
         }
     }
 }

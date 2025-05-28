@@ -17,7 +17,7 @@ trait ValidatesVersionOption
     {
         $versionOption = $this->option('docVersion');
 
-        if ($versionOption !== null) {
+        if (is_string($versionOption) && $versionOption !== '') {
             $version = DocumentationVersion::tryFrom($versionOption);
 
             if ($version === null) {

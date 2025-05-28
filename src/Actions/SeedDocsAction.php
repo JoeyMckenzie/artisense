@@ -7,8 +7,7 @@ namespace Artisense\Actions;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
-use Artisense\Repository\ArtisenseRepository;
-use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Models\DocumentationEntry;
 use Artisense\Support\Services\StorageManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
@@ -19,14 +18,11 @@ final class SeedDocsAction implements SeedDocsActionContract
 {
     private CommonMarkConverter $converter;
 
-    private ArtisenseRepository $repository;
-
     private DocumentationVersion $version;
 
     public function __construct(
         private readonly StorageManager $disk,
         private readonly Filesystem $files,
-        private readonly ArtisenseRepositoryManager $repositoryManager,
     ) {
         //
     }
@@ -44,8 +40,6 @@ final class SeedDocsAction implements SeedDocsActionContract
             throw new ArtisenseException($message);
         }
 
-        $this->repository = $this->repositoryManager->newConnection();
-        $this->repository->createDocsTable();
         $this->converter = new CommonMarkConverter();
 
         // Only care about markdown files for now, no need to process anything else
@@ -56,7 +50,9 @@ final class SeedDocsAction implements SeedDocsActionContract
         // $this->line(sprintf('Found %d docs files...', count($docFiles)));
 
         // Need to avoid doc duplicates, so delete all entries for the configured version before seeding
-        $this->repository->deleteExistingEntries();
+        DocumentationEntry::query()
+            ->where('version', $version->value)
+            ->delete();
 
         foreach ($docFiles as $file) {
             self::processMarkdownDocument($file);
@@ -108,7 +104,16 @@ final class SeedDocsAction implements SeedDocsActionContract
     {
         $link = sprintf('%s#%s', str_replace('.md', '', $path), $this->slugify($heading));
         $content = strip_tags($this->converter->convert($markdown)->getContent());
-        $this->repository->createEntry($title, $heading, $markdown, $content, $path, $link, $this->version);
+
+        DocumentationEntry::create([
+            'title' => $title,
+            'heading' => $heading,
+            'markdown' => $markdown,
+            'content' => $content,
+            'path' => $path,
+            'version' => $this->version->value,
+            'link' => sprintf('%s%s', $this->version->getDocumentationBaseUrl(), $link),
+        ]);
     }
 
     private function slugify(string $text): string

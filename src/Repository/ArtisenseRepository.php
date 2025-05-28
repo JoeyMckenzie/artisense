@@ -29,7 +29,20 @@ final readonly class ArtisenseRepository
         $exists = $this->db->selectOne("SELECT name FROM sqlite_master WHERE type='table' AND name='docs'");
 
         if ($exists === null) {
-            $this->db->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, embedding, path, version, link)');
+            $this->db->statement(
+                <<<'SQL'
+                    CREATE VIRTUAL TABLE docs USING fts5(
+                        title, 
+                        heading,
+                        markdown,
+                        content,
+                        embedding,
+                        path,
+                        version,
+                        link
+                    );
+                SQL
+            );
         }
     }
 

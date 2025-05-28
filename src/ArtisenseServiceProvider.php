@@ -10,6 +10,7 @@ use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\SearchDocsCommand;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 use Override;
 
@@ -37,6 +38,9 @@ final class ArtisenseServiceProvider extends ServiceProvider
 
             $this->app->bind(DownloadDocsActionContract::class, DownloadDocsAction::class);
             $this->app->bind(SeedDocsActionContract::class, SeedDocsAction::class);
+
+            Model::unguard();
+            Model::shouldBeStrict();
         }
     }
 }

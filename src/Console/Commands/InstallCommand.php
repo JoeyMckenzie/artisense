@@ -9,6 +9,7 @@ use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Exceptions\DocumentationVersionException;
+use Artisense\Repository\ArtisenseRepositoryManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 
@@ -18,10 +19,11 @@ final class InstallCommand extends Command
 
     public $signature = 'artisense:install {--docVersion= : Version of Laravel documentation to use}';
 
-    public $description = 'Installs Artisesnse for the project.';
+    public $description = 'Installs artisesnse for the project.';
 
     public function handle(
         VersionManager $versionManager,
+        ArtisenseRepositoryManager $repositoryManager,
         DownloadDocsActionContract $downloadDocsAction,
         SeedDocsActionContract $seedDocsAction,
     ): int {
@@ -38,6 +40,9 @@ final class InstallCommand extends Command
         $this->line("️Using version $version->value...");
 
         try {
+            $this->line('Initializing database...');
+            $repositoryManager->initializeDatabase();
+
             $this->line('Downloading documentation...');
             $downloadDocsAction->handle($version);
 

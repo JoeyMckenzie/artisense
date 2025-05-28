@@ -20,9 +20,9 @@ use function Laravel\Prompts\text;
 
 final class SearchDocsCommand extends Command
 {
-    public $signature = 'artisense:docs {--search= : Search query for documentation}
-                                        {--docVersion= : Version of Laravel documentation to use}
-                                        {--limit=3 : Number of results to return}';
+    public $signature = 'artisense:search {--query= : Search query for documentation}
+                                          {--docVersion= : Version of Laravel documentation to use}
+                                          {--limit=3 : Number of results to return}';
 
     public $description = 'Ask questions about Laravel documentation and get relevant information.';
 
@@ -36,9 +36,9 @@ final class SearchDocsCommand extends Command
     ): int {
         $this->config = $config;
 
-        /** @var array{search: ?string, limit: int, docVersion: ?string} $flags */
+        /** @var array{query: ?string, limit: int, docVersion: ?string} $flags */
         $flags = [
-            'search' => $this->option('search'),
+            'query' => $this->option('query'),
             'limit' => $this->option('limit'),
             'docVersion' => $this->option('docVersion'),
         ];
@@ -55,7 +55,7 @@ final class SearchDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $question = $flags['search'] ?? text(
+        $question = $flags['query'] ?? text(
             label: 'What are you looking for?',
             required: true
         );

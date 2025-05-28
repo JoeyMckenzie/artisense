@@ -7,7 +7,6 @@ namespace Artisense\Tests\Console\Commands;
 use Artisense\Console\Commands\InstallCommand;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
-use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
@@ -37,45 +36,30 @@ describe(InstallCommand::class, function (): void {
     it('successfully installs artisense', function (): void {
         // Arrange & Act & Assert
         $this->artisan(InstallCommand::class)
+            ->expectsQuestion('Which version of documentation would you like to install?', [$this->version->value])
             ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput("️Using version {$this->version->value}...")
+            ->expectsOutput("Installing version {$this->version->value}...")
             ->expectsOutput('Downloading documentation...')
             ->expectsOutput('Storing documentation...')
             ->expectsOutput('✅  Artisense is ready!')
             ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('installs artisense with a specific documentation version', function (): void {
-        // Arrange
-        expect(Config::string('artisense.version'))->toBe($this->version->value);
-        $version = DocumentationVersion::VERSION_11;
-
-        // Act & Assert
-        $this->artisan(InstallCommand::class, ['--docVersion' => $version->value])
-            ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput("️Using version $version->value...")
-            ->expectsOutput('Downloading documentation...')
-            ->expectsOutput('Storing documentation...')
-            ->expectsOutput('✅  Artisense is ready!')
-            ->assertExitCode(Command::SUCCESS);
-
-        // Verify the version was changed
-        expect(Config::string('artisense.version'))->toBe($version->value);
     });
 
     it('returns failure when an invalid documentation version is provided', function (): void {
         // Arrange
         $invalidVersion = 'invalid-version';
-        $validVersions = implode(', ', DocumentationVersion::values());
 
-        // Act & Assert
-        $this->artisan(InstallCommand::class, ['--docVersion' => $invalidVersion])
+        // Act
+        Config::set('artisense.version', $invalidVersion);
+
+        // Assert
+        $this->artisan(InstallCommand::class)
             ->expectsOutput('🔧 Installing artisense...')
             ->expectsOutput("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
             ->assertExitCode(Command::FAILURE);
     });
 
-    it('returns failure when version manager throws an exception', function (): void {
+    it('returns failure when no version is set', function (): void {
         // Arrange, remove the version from config to trigger the missing version exception
         Config::set('artisense.version');
 
@@ -97,10 +81,11 @@ describe(InstallCommand::class, function (): void {
 
         // Act & Assert
         $this->artisan(InstallCommand::class)
+            ->expectsQuestion('Which version of documentation would you like to install?', [$this->version->value])
             ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput("️Using version {$this->version->value}...")
+            ->expectsOutput("Installing version {$this->version->value}...")
             ->expectsOutput('Downloading documentation...')
-            ->expectsOutputToContain('Failed to install: Download docs error.')
+            ->expectsOutputToContain('Download docs error.')
             ->assertExitCode(Command::FAILURE);
     });
 
@@ -116,10 +101,11 @@ describe(InstallCommand::class, function (): void {
         // Act & Assert
         $this->artisan(InstallCommand::class)
             ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput("️Using version {$this->version->value}...")
+            ->expectsQuestion('Which version of documentation would you like to install?', [$this->version->value])
+            ->expectsOutput("Installing version {$this->version->value}...")
             ->expectsOutput('Downloading documentation...')
             ->expectsOutput('Storing documentation...')
-            ->expectsOutputToContain('Failed to install: Seed docs failed.')
+            ->expectsOutputToContain('Seed docs failed.')
             ->assertExitCode(Command::FAILURE);
     });
 });

@@ -31,6 +31,12 @@ final readonly class ArtisenseRepositoryManager
 
     public function initializeDatabase(): void
     {
+        $this->configureDatabase();
+        $this->createDocsTable();
+    }
+
+    private function configureDatabase(): void
+    {
         $dbPath = $this->disk->path('artisense.sqlite');
 
         // Ensure DB directory exists
@@ -49,8 +55,6 @@ final readonly class ArtisenseRepositoryManager
                 'prefix' => '',
             ],
         ]);
-
-        $this->createDocsTable();
     }
 
     private function createDocsTable(): void
@@ -74,27 +78,5 @@ final readonly class ArtisenseRepositoryManager
                 SQL
             );
         }
-    }
-
-    private function setConfiguration(): void
-    {
-        $dbPath = $this->disk->path('artisense.sqlite');
-
-        // Ensure DB directory exists
-        $this->files->ensureDirectoryExists(dirname($dbPath));
-
-        // TODO: This would be a real issue, would need to be handled
-        if (! $this->files->exists($dbPath)) {
-            $this->files->put($dbPath, '');
-        }
-
-        // Set up SQLite connection
-        $this->config->set([
-            'database.connections.artisense' => [
-                'driver' => 'sqlite',
-                'database' => $dbPath,
-                'prefix' => '',
-            ],
-        ]);
     }
 }

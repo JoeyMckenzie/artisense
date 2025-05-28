@@ -71,9 +71,9 @@ describe(SearchDocsCommand::class, function (): void {
             ->assertExitCode(Command::SUCCESS);
     });
 
-    it('returns search results when using --search option', function (): void {
+    it('returns search results when using --query option', function (): void {
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
@@ -81,19 +81,19 @@ describe(SearchDocsCommand::class, function (): void {
             ->assertExitCode(Command::SUCCESS);
     });
 
-    it('displays a message when no results are found using --search option', function (): void {
+    it('displays a message when no results are found using --query option', function (): void {
         // Act & Assert
         $this->artisan(SearchDocsCommand::class, [
-            '--search' => 'reverb',
+            '--query' => 'reverb',
             '--limit' => 2,
         ])
             ->expectsOutput('No results found for your query.')
             ->assertExitCode(Command::SUCCESS);
     });
 
-    it('handles multiple search results when using --search option', function (): void {
+    it('handles multiple search results when using --query option', function (): void {
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan Console - Writing Commands')
@@ -138,7 +138,7 @@ MARKDOWN;
 
         // Act & Assert, we're not checking specific formatting here, just that it doesn't error
         // and that the content is still present, but h1 headings should be skipped
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'markdown formatting'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'markdown formatting'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Markdown Test - Formatting')
             ->expectsOutputToContain($markdown)
@@ -169,7 +169,7 @@ MARKDOWN;
         ]);
 
         // Act & Assert - Verify that h1 headings are excluded from search results
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'heading'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'heading'])
             ->expectsOutput('🔍 Found relevant information:')
             ->doesntExpectOutputToContain('H1 Heading') // h1 heading should be excluded
             ->expectsOutputToContain('Test Document - H2 Section - 12.x') // h2 heading should be included
@@ -182,7 +182,7 @@ MARKDOWN;
         Config::set('artisense.formatter', TestOutputFormatter::class);
 
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('FORMATTED: Artisan is the command-line interface included with Laravel.')
@@ -195,7 +195,7 @@ MARKDOWN;
         Config::set('artisense.formatter');
 
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
@@ -208,7 +208,7 @@ MARKDOWN;
         Config::set('artisense.formatter', 'NonExistentFormatter');
 
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--search' => 'artisan command'])
+        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
             ->expectsOutput('🔍 Found relevant information:')
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Failed to format markdown with the configured formatter, using basic formatting.')

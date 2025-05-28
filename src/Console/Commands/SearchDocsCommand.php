@@ -8,7 +8,7 @@ use Artisense\Contracts\OutputFormatterContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Exceptions\InvalidOutputFormatterException;
-use Artisense\Support\Services\DocumentationDatabaseManager;
+use Artisense\Models\DocumentationEntry;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
@@ -29,7 +29,6 @@ final class SearchDocsCommand extends Command
     private Config $config;
 
     public function handle(
-        DocumentationDatabaseManager $repositoryManager,
         Config $config,
         Validator $validator,
         VersionManager $versionManager,
@@ -55,7 +54,7 @@ final class SearchDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $question = $flags['query'] ?? text(
+        $query = $flags['query'] ?? text(
             label: 'What are you looking for?',
             required: true
         );
@@ -72,8 +71,15 @@ final class SearchDocsCommand extends Command
             return self::FAILURE;
         }
 
-        $repository = $repositoryManager->newConnection();
-        $results = $repository->search($question, (int) $flags['limit']);
+        $limit = (int) $flags['limit'];
+        $results = DocumentationEntry::query()
+            ->whereRaw('content MATCH ?', [$query])
+            ->whereRaw('heading != title') // Exclude h1 headings (where heading equals title)
+            ->where('version', $version->value)
+            ->orderByRaw('rank')
+            ->limit($limit)
+            ->get(['title', 'heading', 'markdown', 'link'])
+            ->all();
 
         if (count($results) === 0) {
             $this->info('No results found for your query.');

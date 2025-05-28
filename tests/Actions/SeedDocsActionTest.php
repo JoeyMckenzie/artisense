@@ -7,6 +7,7 @@ namespace Artisense\Tests\Actions;
 use Artisense\Actions\SeedDocsAction;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
+use Artisense\Models\DocumentationEntry;
 use Artisense\Support\Services\DocumentationDatabaseManager;
 use Artisense\Support\Services\StorageManager;
 use Illuminate\Filesystem\Filesystem;
@@ -20,10 +21,12 @@ describe(SeedDocsAction::class, function (): void {
         File::ensureDirectoryExists($this->docsPath);
         File::copy(__DIR__.'/../Fixtures/artisan.md', $this->docsPath.'/artisan.md');
 
+        $dbManager = app(DocumentationDatabaseManager::class);
+        $dbManager->initializeDatabase();
+
         $this->action = new SeedDocsAction(
             app(StorageManager::class),
             app(Filesystem::class),
-            app(DocumentationDatabaseManager::class)
         );
     });
 
@@ -36,28 +39,28 @@ describe(SeedDocsAction::class, function (): void {
         expect(count($result))->toBeGreaterThan(0);
 
         // Verify specific content was parsed correctly
-        $row = $this->db
-            ->where(['heading' => 'Artisan Console'])
+        $entry = DocumentationEntry::query()
+            ->where('heading', '=', 'Artisan Console')
             ->get(['title', 'version', 'link'])
             ->first();
-        expect($row)->not->toBeNull()
-            ->and($row->title)->toBe('Artisan Console')
-            ->and($row->version)->toBe($this->version->value)
-            ->and($row->link)->toContain('artisan#artisan-console');
+        expect($entry)->not->toBeNull()
+            ->and($entry->title)->toBe('Artisan Console')
+            ->and($entry->version)->toBe($this->version->value)
+            ->and($entry->link)->toContain('artisan#artisan-console');
     });
 
     it('removes existing entries by version before seeding new docs', function (): void {
         // Arrange, run the action to seed the DB
         $this->action->handle($this->version);
 
-        $result = $this->db->get();
+        $result = DocumentationEntry::all();
         expect(count($result))->toBe(45);
 
         // Act, run the action again
         $this->action->handle($this->version);
 
         // Assert, count should still be the same due to deleting => re-seeding process
-        $result = $this->db->get();
+        $result = DocumentationEntry::all();
         expect(count($result))->toBe(45);
     });
 
@@ -72,13 +75,13 @@ describe(SeedDocsAction::class, function (): void {
         $this->action->handle($this->version);
 
         // Assert
-        $row = $this->db
-            ->where(['heading' => '[Intro]'])
+        $entry = DocumentationEntry::query()
+            ->where('heading', '=', '[Intro]')
             ->get(['title', 'markdown'])
             ->first();
-        expect($row)->not->toBeNull()
-            ->and($row->title)->toBe('[Untitled]')
-            ->and($row->markdown)->toContain('This is a test file with no headings.');
+        expect($entry)->not->toBeNull()
+            ->and($entry->title)->toBe('[Untitled]')
+            ->and($entry->markdown)->toContain('This is a test file with no headings.');
     });
 
     it('creates database tables correctly', function (): void {
@@ -96,6 +99,7 @@ describe(SeedDocsAction::class, function (): void {
             ->and($result)->toContain('heading')
             ->and($result)->toContain('markdown')
             ->and($result)->toContain('content')
+            ->and($result)->toContain('embedding')
             ->and($result)->toContain('path')
             ->and($result)->toContain('link');
     });
@@ -112,12 +116,12 @@ describe(SeedDocsAction::class, function (): void {
             'Writing Commands',
         ];
 
-        $rows = $this->db
+        $entries = DocumentationEntry::query()
             ->whereIn('heading', $headings)
             ->get(['heading']);
-        expect($rows)->not->toBeNull()
-            ->and($rows->count())->toBe(count($headings))
-            ->and($rows->pluck('heading')->toArray())->toBe($headings);
+        expect($entries)->not->toBeNull()
+            ->and($entries->count())->toBe(count($headings))
+            ->and($entries->pluck('heading')->toArray())->toBe($headings);
     });
 
     it('creates correct links with slugified headings', function (): void {
@@ -125,14 +129,14 @@ describe(SeedDocsAction::class, function (): void {
         $this->action->handle($this->version);
 
         // Act
-        $row = $this->db
-            ->where(['heading' => 'Tinker (REPL)'])
+        $entry = DocumentationEntry::query()
+            ->where('heading', '=', 'Tinker (REPL)')
             ->get(['link'])
             ->first();
 
         // Assert
-        expect($row)->not->toBeNull()
-            ->and($row->link)->toContain('artisan#tinker-repl');
+        expect($entry)->not->toBeNull()
+            ->and($entry->link)->toContain('artisan#tinker-repl');
     });
 
     it('skips non-markdown files', function (): void {
@@ -146,8 +150,8 @@ describe(SeedDocsAction::class, function (): void {
         $this->action->handle($this->version);
 
         // Assert
-        $result = $this->db
-            ->whereLike('markdown', '%This is not a markdown file.%')
+        $result = DocumentationEntry::query()
+            ->whereLike('markdown', 'This is not a markdown file.')
             ->doesntExist();
 
         expect($result)->toBeTrue();
@@ -163,7 +167,7 @@ describe(SeedDocsAction::class, function (): void {
             ->not->toThrow(ArtisenseException::class);
 
         // Assert
-        $result = $this->db->get();
+        $result = DocumentationEntry::all();
         expect(File::exists($this->storagePath.'/artisense.sqlite'))->toBeTrue();
         expect(count($result))->toBe(0);
     });
@@ -177,15 +181,15 @@ describe(SeedDocsAction::class, function (): void {
         $this->action->handle($this->version);
 
         // Assert
-        $row = $this->db
-            ->where(['heading' => 'Test Heading'])
+        $entry = DocumentationEntry::query()
+            ->where('heading', '=', 'Test Heading')
             ->get(['markdown', 'content'])
             ->first();
 
-        expect($row)->not->toBeNull()
-            ->and($row->markdown)->toContain('<strong>test</strong>')
-            ->and($row->content)->not->toContain('<strong>')
-            ->and($row->content)->toContain('test');
+        expect($entry)->not->toBeNull()
+            ->and($entry->markdown)->toContain('<strong>test</strong>')
+            ->and($entry->content)->not->toContain('<strong>')
+            ->and($entry->content)->toContain('test');
     });
 
     it('handles different heading levels correctly', function (): void {
@@ -200,21 +204,21 @@ describe(SeedDocsAction::class, function (): void {
         $headings = ['H1 Heading', 'H2 Heading', 'H3 Heading'];
 
         foreach ($headings as $heading) {
-            $row = $this->db
-                ->where(['heading' => $heading])
+            $entry = DocumentationEntry::query()
+                ->where('heading', '=', $heading)
                 ->get(['heading'])
                 ->first();
 
-            expect($row)->not->toBeNull()
-                ->and($row->heading)->toBe($heading);
+            expect($entry)->not->toBeNull()
+                ->and($entry->heading)->toBe($heading);
         }
 
         // Check that H1 is used as title for all sections
-        $row = $this->db
-            ->where(['heading' => 'H2 Heading'])
+        $entry = DocumentationEntry::query()
+            ->where('heading', '=', 'H2 Heading')
             ->get(['title'])
             ->first();
-        expect($row->title)->toBe('H1 Heading');
+        expect($entry->title)->toBe('H1 Heading');
     });
 
     it('handles different documentation versions', function (): void {
@@ -228,13 +232,13 @@ describe(SeedDocsAction::class, function (): void {
         $this->action->handle($version);
 
         // Assert
-        $row = $this->db
-            ->where(['heading' => 'Artisan Console (11.x)'])
+        $entry = DocumentationEntry::query()
+            ->where('heading', '=', 'Artisan Console (11.x)')
             ->get(['title', 'version', 'link'])
             ->first();
-        expect($row)->not->toBeNull()
-            ->and($row->title)->toBe('Artisan Console (11.x)')
-            ->and($row->version)->toBe($version->value);
+        expect($entry)->not->toBeNull()
+            ->and($entry->title)->toBe('Artisan Console (11.x)')
+            ->and($entry->version)->toBe($version->value);
     });
 
     it('throws exception when docs directory does not exist', function (): void {

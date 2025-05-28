@@ -47,8 +47,6 @@ final class SeedDocsAction implements SeedDocsActionContract
             ->filter(fn (SplFileInfo $file) => $file->isFile())
             ->filter(fn (SplFileInfo $file): bool => $file->getExtension() === 'md');
 
-        // $this->line(sprintf('Found %d docs files...', count($docFiles)));
-
         // Need to avoid doc duplicates, so delete all entries for the configured version before seeding
         DocumentationEntry::query()
             ->where('version', $version->value)

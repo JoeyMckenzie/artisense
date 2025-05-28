@@ -11,7 +11,7 @@ use Illuminate\Http\Client\Factory;
 
 final readonly class OpenAIConnector
 {
-    private const string BASE_URL = 'https://api.openai.com/v1';
+    public const string EMBEDDINGS_BASE_URL = 'https://api.openai.com/v1/embeddings';
 
     public function __construct(
         private Factory $http,
@@ -36,7 +36,7 @@ final readonly class OpenAIConnector
                 'Authorization' => "Bearer $apiKey",
                 'Content-Type' => 'application/json',
             ])
-            ->post(self::BASE_URL.'/embeddings', [
+            ->post(self::EMBEDDINGS_BASE_URL, [
                 'input' => $text,
                 'model' => 'text-embedding-ada-002',
                 'encoding_format' => 'float',

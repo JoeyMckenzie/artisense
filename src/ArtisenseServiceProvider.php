@@ -10,7 +10,8 @@ use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\SearchDocsCommand;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
-use Illuminate\Contracts\Config\Repository;
+use Artisense\Support\Services\StorageManager;
+use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
 use Override;
@@ -25,7 +26,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
         );
     }
 
-    public function boot(Repository $config): void
+    public function boot(Config $config, StorageManager $disk): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -46,7 +47,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
             $config->set([
                 'database.connections.artisense' => [
                     'driver' => 'sqlite',
-                    'database' => storage_path('artisense/artisense.sqlite'),
+                    'database' => $disk->dbPath,
                     'prefix' => '',
                 ],
             ]);

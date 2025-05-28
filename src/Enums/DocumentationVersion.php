@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Artisense\Enums;
 
-enum DocumentationVersion: string
+use Artisense\Contracts\StaticallyArrayable;
+
+enum DocumentationVersion: string implements StaticallyArrayable
 {
     case VERSION_12 = '12.x';
 

@@ -8,8 +8,8 @@ use Artisense\Contracts\OutputFormatterContract;
 
 final class TestOutputFormatter implements OutputFormatterContract
 {
-    public function format(string $output): string
+    public function format(string $markdown): string
     {
-        return "FORMATTED: $output";
+        return "FORMATTED: $markdown";
     }
 }

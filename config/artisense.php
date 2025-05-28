@@ -3,29 +3,17 @@
 declare(strict_types=1);
 
 use Artisense\Enums\DocumentationVersion;
+use Artisense\Enums\SearchPreference;
 
 return [
-
-    /*
-    |--------------------------------------------------------------------------
-    | Artisense Status
-    |--------------------------------------------------------------------------
-    |
-    | This option controls whether Artisense is enabled for your application.
-    | When enabled, Artisense features are available throughout your app.
-    | Set this value as false disable Artisense functionality entirely.
-    |
-    */
-
-    'enabled' => true,
 
     /*
     |--------------------------------------------------------------------------
     | Documentation version
     |--------------------------------------------------------------------------
     |
-    | Specifies the version of the documentation to use, with both numbered.
-    | Versions and master available. By default, the most recent numbered
+    | Specifies the version of the documentation to use, with both numbered
+    | versions and master available. By default, the most recent numbered
     | is used if no version is specified while attempting to download.
     |
     */
@@ -44,6 +32,22 @@ return [
     */
 
     'formatter' => null,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Search Preference
+    |--------------------------------------------------------------------------
+    |
+    | Specifies the search preference to use when querying for documentation.
+    | Order searches are used by default, returning results using ordered
+    | phrase matching. You may choose your preference to adjust results.
+    |
+    */
+
+    'search' => [
+        'preference' => SearchPreference::ORDERED,
+        'proximity' => 10,
+    ],
 
     /*
     |--------------------------------------------------------------------------

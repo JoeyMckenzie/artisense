@@ -6,5 +6,5 @@ namespace Artisense\Contracts;
 
 interface OutputFormatterContract
 {
-    public function format(string $output): string;
+    public function format(string $markdown): string;
 }

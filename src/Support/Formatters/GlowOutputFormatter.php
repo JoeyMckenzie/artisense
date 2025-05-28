@@ -12,7 +12,7 @@ final class GlowOutputFormatter implements OutputFormatterContract
     /**
      * @throws OutputFormatterException
      */
-    public function format(string $output): string
+    public function format(string $markdown): string
     {
         // Define how input/output streams will be handled for the child process
         $descriptors = [
@@ -29,11 +29,11 @@ final class GlowOutputFormatter implements OutputFormatterContract
 
         // If the process failed to start, just return the original unformatted output
         if (! is_resource($process)) {
-            return $output;
+            return $markdown;
         }
 
         // Write the markdown content to glow's stdin
-        fwrite($coercedPipes[0], $output);
+        fwrite($coercedPipes[0], $markdown);
         fclose($coercedPipes[0]); // Close stdin to signal we're done sending input
 
         // Read the formatted output from glow's stdout

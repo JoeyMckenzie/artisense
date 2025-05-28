@@ -7,9 +7,27 @@ namespace Artisense\Support\Services;
 /**
  * @internal
  */
-final readonly class StorageManager
+final class StorageManager
 {
-    private string $storageKey;
+    public string $zipsPath {
+        get {
+            return $this->path('zips');
+        }
+    }
+
+    public string $docsPath {
+        get {
+            return $this->path('docs');
+        }
+    }
+
+    public string $dbPath {
+        get {
+            return $this->path('artisense.sqlite');
+        }
+    }
+
+    private readonly string $storageKey;
 
     public function __construct()
     {

@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\ArtisenseConfiguration;
 use Artisense\Console\Concerns\ValidatesVersionOption;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
+use Artisense\Exceptions\ArtisenseConfigurationException;
 use Artisense\Exceptions\ArtisenseException;
-use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Support\Services\DocumentationDatabaseManager;
-use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 
 use function Laravel\Prompts\clear;
@@ -31,7 +31,7 @@ final class InstallCommand extends Command
     private SeedDocsActionContract $seedDocsAction;
 
     public function handle(
-        VersionManager $versionManager,
+        ArtisenseConfiguration $config,
         DocumentationDatabaseManager $repositoryManager,
         DownloadDocsActionContract $downloadDocsAction,
         SeedDocsActionContract $seedDocsAction,
@@ -42,7 +42,7 @@ final class InstallCommand extends Command
         $this->seedDocsAction = $seedDocsAction;
 
         try {
-            $version = $versionManager->getVersion();
+            $version = $config->getVersion();
 
             /** @var string[] $versions */
             $versions = multiselect(
@@ -52,7 +52,10 @@ final class InstallCommand extends Command
                 required: 'You must select at least one version.',
                 hint: 'You can change the default version within the artisense.php config file.'
             );
-            $versionsToInstall = array_map(static fn (string $selectedVersion) => DocumentationVersion::from($selectedVersion), $versions);
+
+            $versionsToInstall = array_map(
+                static fn (string $selectedVersion) => DocumentationVersion::from($selectedVersion), $versions
+            );
 
             $this->line('Initializing database...');
             $repositoryManager->initializeDatabase();
@@ -65,7 +68,7 @@ final class InstallCommand extends Command
             );
 
             clear();
-        } catch (DocumentationVersionException|ArtisenseException $e) {
+        } catch (ArtisenseConfigurationException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;

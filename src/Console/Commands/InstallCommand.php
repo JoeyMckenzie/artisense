@@ -10,7 +10,7 @@ use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Exceptions\DocumentationVersionException;
-use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\DocumentationDatabaseManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 
@@ -32,7 +32,7 @@ final class InstallCommand extends Command
 
     public function handle(
         VersionManager $versionManager,
-        ArtisenseRepositoryManager $repositoryManager,
+        DocumentationDatabaseManager $repositoryManager,
         DownloadDocsActionContract $downloadDocsAction,
         SeedDocsActionContract $seedDocsAction,
     ): int {

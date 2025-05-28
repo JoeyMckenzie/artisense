@@ -6,13 +6,13 @@ namespace Artisense\Actions;
 
 use Artisense\Contracts\Actions\GenerateEmbeddingsActionContract;
 use Artisense\Enums\DocumentationVersion;
-use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\DocumentationDatabaseManager;
 use Artisense\Support\Services\OpenAIConnector;
 
 final readonly class GenerateEmbeddingsAction implements GenerateEmbeddingsActionContract
 {
     public function __construct(
-        private ArtisenseRepositoryManager $repositoryManager,
+        private DocumentationDatabaseManager $repositoryManager,
         private OpenAIConnector $connector,
     ) {
         //

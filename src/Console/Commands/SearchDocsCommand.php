@@ -8,7 +8,7 @@ use Artisense\Contracts\OutputFormatterContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\DocumentationVersionException;
 use Artisense\Exceptions\InvalidOutputFormatterException;
-use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\DocumentationDatabaseManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
@@ -29,7 +29,7 @@ final class SearchDocsCommand extends Command
     private Config $config;
 
     public function handle(
-        ArtisenseRepositoryManager $repositoryManager,
+        DocumentationDatabaseManager $repositoryManager,
         Config $config,
         Validator $validator,
         VersionManager $versionManager,

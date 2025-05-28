@@ -2,31 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Repository;
+namespace Artisense\Support\Services;
 
-use Artisense\Support\Services\StorageManager;
-use Artisense\Support\Services\VersionManager;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;
 
-final readonly class ArtisenseRepositoryManager
+final readonly class DocumentationDatabaseManager
 {
     public function __construct(
         private StorageManager $disk,
         private Config $config,
         private Filesystem $files,
         private ConnectionResolverInterface $resolver,
-        private VersionManager $versionManager,
     ) {
         //
-    }
-
-    public function newConnection(): ArtisenseRepository
-    {
-        $connection = $this->resolver->connection('artisense');
-
-        return new ArtisenseRepository($connection, $this->versionManager);
     }
 
     public function initializeDatabase(): void

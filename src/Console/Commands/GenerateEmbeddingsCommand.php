@@ -7,7 +7,7 @@ namespace Artisense\Console\Commands;
 use Artisense\Actions\GenerateEmbeddingsAction;
 use Artisense\Console\Concerns\ValidatesVersionOption;
 use Artisense\Exceptions\DocumentationVersionException;
-use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\DocumentationDatabaseManager;
 use Artisense\Support\Services\VersionManager;
 use Illuminate\Console\Command;
 use Illuminate\Contracts\Config\Repository as Config;
@@ -23,7 +23,7 @@ final class GenerateEmbeddingsCommand extends Command
 
     public function handle(
         VersionManager $versionManager,
-        ArtisenseRepositoryManager $repositoryManager,
+        DocumentationDatabaseManager $repositoryManager,
         Config $config,
         GenerateEmbeddingsAction $action
     ): int {

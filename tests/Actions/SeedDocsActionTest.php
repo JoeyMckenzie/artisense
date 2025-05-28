@@ -7,7 +7,7 @@ namespace Artisense\Tests\Actions;
 use Artisense\Actions\SeedDocsAction;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
-use Artisense\Repository\ArtisenseRepositoryManager;
+use Artisense\Support\Services\DocumentationDatabaseManager;
 use Artisense\Support\Services\StorageManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
@@ -23,7 +23,7 @@ describe(SeedDocsAction::class, function (): void {
         $this->action = new SeedDocsAction(
             app(StorageManager::class),
             app(Filesystem::class),
-            app(ArtisenseRepositoryManager::class)
+            app(DocumentationDatabaseManager::class)
         );
     });
 

@@ -66,7 +66,7 @@ artisense is just a SQLite file, you may connect and query it like any other SQL
 Install artisense with composer:
 
 ```bash
-composer require joeymckenzie/artisense
+composer require --dev joeymckenzie/artisense
 ```
 
 You may also publish the configuration file with:

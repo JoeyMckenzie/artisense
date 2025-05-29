@@ -24,8 +24,8 @@ Laravel docs from the comfort of your terminal.
 
 ## Motivation
 
-Artisense is meant to be a local-first copy of the Laravel documentation. At it's core, artisense is a set of artisan
-commands that allow you to search the laravel documentation from the comfort of your terminal.
+Artisense is meant to be a local-first copy of the Laravel documentation. Artisense is a set of artisan
+commands that allow you to locally store and search the laravel documentation from the comfort of your terminal.
 
 ## How it works
 

@@ -14,6 +14,8 @@ Laravel docs from the comfort of your terminal.
 
 ## Table of Contents
 
+- [Motivation](#motivation)
+- [How it works](#how-it-works)
 - [Getting started](#getting-started)
 - [Usage](#usage)
 - [Changelog](#changelog)
@@ -21,15 +23,54 @@ Laravel docs from the comfort of your terminal.
 - [Credits](#credits)
 - [License](#license)
 
+## Motivation
+
+Artisense is meant to be a local-first copy of the Laravel documentation. At it's core, artisense is a set of artisan
+commands that allow you to search the laravel documentation from the comfort of your terminal.
+
+## How it works
+
+At its core, artisense is a SQLite database that lives within your `storage_path()` underneath an `/artisense` folder:
+
+```bash
+your-laravel-app/
+  app/
+  config/
+  ...
+  storage/
+    artisense/
+      artisense.sqlite // Where docs are stored
+      docs-11.x/ // Documentation markdown files from 11.x
+        artisan.md
+        ...
+      docs-12.x/ // Documentation markdown files from 12.x
+        artisan.md
+        ...
+      docs-master.x/ // Documentation markdown files from master
+        artisan.md
+        ...
+      zips/ // Zip archives of the documentation
+        laravel-12.x.zip
+        laravel-11.x.zip
+        laravel-master.x.zip
+        ...
+```
+
+Artisense uses SQLite to store documentation pulled from the Laravel
+documentation [source](https://github.com/laravel/docs).
+The documentation is downloaded as a zip file, extracted into a `artisense/docs-{version}.x/` folder, then processed
+into sections to allow full-text search using SQLite's [FTS5](https://www.sqlite.org/fts5.html) extension. Since
+artisense is just a SQLite file, you may connect and query it like any other SQLite database.
+
 ## Getting started
 
-You can install artisense with composer:
+Install artisense with composer:
 
 ```bash
 composer require joeymckenzie/artisense
 ```
 
-You can also publish the config file with:
+You may also publish the configuration file with:
 
 ```bash
 php artisan vendor:publish --tag="artisense-config"
@@ -42,23 +83,10 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Artisense Status
-    |--------------------------------------------------------------------------
-    |
-    | This option controls whether Artisense is enabled for your application.
-    | When enabled, Artisense features are available throughout your app.
-    | Set this value as false disable Artisense functionality entirely.
-    |
-    */
-
-    'enabled' => true,
-
-    /*
-    |--------------------------------------------------------------------------
     | Documentation version
     |--------------------------------------------------------------------------
     |
-    | Specifies the version of the documentation to use, with both numbered.
+    | Specifies the version of the documentation to use, with both numbered
     | versions and master available. By default, the most recent numbered
     | is used if no version is specified while attempting to download.
     |
@@ -77,10 +105,35 @@ return [
     |
     */
 
-    'formatter' => null,
+    'formatter' => BasicMarkdownFormatter::class,
+
+    /*
+    |--------------------------------------------------------------------------
+    | Search Preference
+    |--------------------------------------------------------------------------
+    |
+    | Specifies the search preferences to use when querying for documentation.
+    | Ordered searches are used by default, returning results using ordered
+    | phrase matching. You may choose your preference to adjust results.
+    |
+    */
+
+    'search' => [
+        'preference' => SearchPreference::ORDERED,
+        'proximity' => 10,
+    ],
 
 ];
 ```
+
+Artisense has a few tuning knobs within its configuration:
+
+- **Version**: specifies the version to run queries against, as multiple versions of the documentation may all be stored
+  alongside one another
+- **Formatter**: specifies any custom formatting the markdown output should use when results are found
+- **Search preference**: SQLite full-text search preference, either `ordered` or `unordered`
+- **Search proximity**: relative distance between terms full-text search should consider when querying using an
+  `unordered` preference
 
 ## Usage
 
@@ -90,118 +143,99 @@ First, prepare artisense by running the install command:
 php artisan artisense:install
 ```
 
+You'll be prompted with a choice of versions to install:
+
+```bash
+🔧 Installing artisense...
+
+ ┌ Which version of documentation would you like to install? ───┐
+ │ › ◼ 12.x                                                     │
+ │   ◻ 11.x                                                     │
+ │   ◻ 10.x                                                     │
+ │   ◻ master                                                   │
+ └──────────────────────────────────────────────────────────────┘
+  You can change the default version within the artisense.php config file.
+```
+
+Artisense uses [Laravel Prompts](https://laravel.com/docs/12.x/prompts), so any supported version of the documentation
+may be selected. Multiple versions of the documentation may be selected, where each will be processed and stored within
+the database allowing for querying across Laravel versions.
+
 The install command will do a few things:
 
 1. Download the Laravel markdown documentation files based on the configured version
 2. Create a local SQLite database in your project within the storage folder under `storage/artisense`
-3. Seed the database with the parsed Laravel documentation
-
-Artisense allows for multiple versions of documentation to coincide with one another. For instance, running the above
-command with the default settings will seed documentation within the database for the latest stable version. However,
-you may also re-run installation with an updated version value within the `artisense.php`:
-
-```php
-return [
-
-    // Other configuration...
-
-    'version' => DocumentationVersion::MASTER,
-
-];
-```
-
-You may also install versions by explicitly passing a `--version` flag to the install command:
-
-```php
-php artisan artisense:install --version "12.x" // (10.x, 11.x, master, etc.)
-```
+3. Seed the database with the processed Laravel documentation
 
 ## Usage
 
-Artisense uses SQLite's full-text search extension [FTS5](https://www.sqlite.org/fts5.html) to store Laravel
-documentation.
-Once you've successfully installed a version of the documentation using artisense, you may use the `docs` artisense
-artisan
-command to search relevant sections:
+Artisense uses SQLite's full-text search extension [FTS5](https://www.sqlite.org/fts5.html) to query Laravel
+documentation. Once you've successfully installed a version of the documentation using artisense, you may use the
+`artisense:search` artisan command to search relevant sections:
 
 ```bash
-php artisan artisense:docs
+php artisan artisense:search
 
- ┌ What are you looking for? ───────────────────────────────────┐
- │ enum validation                                              │
+ ┌ Enter a search term to find relevant information: ───────────┐
+ │ Installing Reverb, handling Stripe webhooks, etc.            │
  └──────────────────────────────────────────────────────────────┘
+  Use at least a few characters to get relevant results.
 ```
 
-If any relevant documentation is found, artisense will display it within your terminal:
-
-> 🔍 Found relevant information:
->
-> Validation - enum
-> #### enum
->
-> The `Enum` rule is a class based rule that validates whether the field under validation contains a valid enum value.
-> The `Enum` rule accepts the name of the enum as its only constructor argument. When validating primitive values, a
-> backed Enum should be provided to the `Enum` rule:
->
-> ```php
-> use App\Enums\ServerStatus;
-> use Illuminate\Validation\Rule;
-> 
-> $request->validate([
->     'status' => [Rule::enum(ServerStatus::class)],
-> ]);
-> The `Enum` rule's `only` and `except` methods may be used to limit which enum cases should be considered valid:
->
-> ```php
-> Rule::enum(ServerStatus::class)
->     ->only([ServerStatus::Pending, ServerStatus::Active]);
-> 
-> Rule::enum(ServerStatus::class)
->     ->except([ServerStatus::Pending, ServerStatus::Active]);
-> ```
->
-> The `when` method may be used to conditionally modify the `Enum` rule:
->
-> ```php
-> use Illuminate\Support\Facades\Auth;
-> use Illuminate\Validation\Rule;
-> 
-> Rule::enum(ServerStatus::class)
->     ->when(
->         Auth::user()->isAdmin(),
->         fn ($rule) => $rule->only(...),
->         fn ($rule) => $rule->only(...),
->     );
-> ```
->
-> <a name="rule-exclude"></a>
->
-> Learn more: https://laravel.com/docs/12.x/validation#enum
-
-By default, artisense returns the raw markdown it that was used to find the relevant section. A link to the section
-within the documentation is also included.
-
-Artisense uses [Laravel Prompts](https://laravel.com/docs/12.x/prompts), though you may also pass a `--search` flag to
-the `docs` command:
+If any relevant documentation is found, matches will be displayed in the terminal:
 
 ```bash
-php artisan artisense:docs --search "enum validation"
+ ┌ Enter a search term to find relevant information: ───────────────┐
+ │ pennant                                                          │
+ ├──────────────────────────────────────────────────────────────────┤
+ │   2407 - 12.x - Laravel Pennant - Configuration                ┃ │
+ │   2406 - 12.x - Laravel Pennant - Installation                 │ │
+ │   2433 - 12.x - Laravel Pennant - Store Configuration          │ │
+ └──────────────────────────────────────────────────────────────────┘
+  Use at least a few characters to get relevant results.
 ```
 
-Using full-text search, artisense will attempt to find relevant sections, returning **three** entries by default. You
-may configure this with the `--limit` flag for the `docs` command:
+and if you select an entry:
 
-```bash
-php artisan artisense:docs --search "enum validation" --limit 5
-```
+> Laravel Pennant - Defining Features Externally - 12.x
+> ### Defining Features Externally
+>
+> If your driver is a wrapper around a third-party feature flag platform, you will likely define features on the
+> platform rather than using Pennant's `Feature::define` method. If that is the case, your custom driver should also
+> implement the `Laravel\Pennant\Contracts\DefinesFeaturesExternally` interface:
+>
+> ```
+> <?php
+> 
+> namespace App\Extensions;
+> 
+> use Laravel\Pennant\Contracts\Driver;
+> use Laravel\Pennant\Contracts\DefinesFeaturesExternally;
+> 
+> class FeatureFlagServiceDriver implements Driver, DefinesFeaturesExternally
+> {
+>     /**
+>      * Get the features defined for the given scope.
+>      */
+>     public function definedFeaturesForScope(mixed $scope): array {}
+> 
+>     /* ... */
+> }
+> ```
+>
+> The `definedFeaturesForScope` method should return a list of feature names defined for the provided scope.
+>
+> <a name="events"></a>
+>
+>
+> Learn more: https://laravel.com/docs/12.x/pennant#defining-features-externally
+
+By default, artisense returns the raw markdown from the content that was used to find the relevant section. A link to
+the section within the documentation will also included.
 
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
 ## Credits
 

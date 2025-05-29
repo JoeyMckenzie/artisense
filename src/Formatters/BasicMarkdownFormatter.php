@@ -69,6 +69,7 @@ final class BasicMarkdownFormatter implements OutputFormatterContract
 
                 continue;
             }
+
             if ($inList && mb_trim($line ?? '') === '') {
                 $inList = false;
             }

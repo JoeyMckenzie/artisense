@@ -18,6 +18,7 @@ Laravel docs from the comfort of your terminal.
 - [How it works](#how-it-works)
 - [Getting started](#getting-started)
 - [Usage](#usage)
+    - [Formatting](#formatting)
 - [Changelog](#changelog)
 - [Credits](#credits)
 - [License](#license)
@@ -231,6 +232,52 @@ and if you select an entry:
 
 By default, artisense returns the raw markdown from the content that was used to find the relevant section. A link to
 the section within the documentation will also included.
+
+### Formatting
+
+You may customize the output of the `artisense:search` command through the use of
+an [output formatter](https://github.com/JoeyMckenzie/artisense/blob/main/src/Contracts/OutputFormatterContract.php).
+The search command will output the raw markdown processed from the identified documentation section, though if an output
+formatter is specified within configuration, it will use that format the output.
+
+By default, artisense includes two simple output formatter:
+
+- a [basic](https://github.com/JoeyMckenzie/artisense/blob/main/src/Formatters/BasicMarkdownFormatter.php) markdown
+  formatter
+- a [glow-based](https://github.com/JoeyMckenzie/artisense/blob/main/src/Formatters/GlowOutputFormatter.php) output
+  formatter (requires [glow](https://github.com/charmbracelet/glow) to be installed)
+
+You may specify a custom formatter within your `artisense.php` configuration:
+
+```php
+return [
+
+    // Other configuration...
+
+    'formatter' => \App\Support\Formatters\CustomMarkdownFormatter::class,
+
+];
+```
+
+You may then implement the `OutputFormatterContract` to format the markdown:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Support\Formatters;
+
+use Artisense\Contracts\OutputFormatterContract;
+
+final class TestOutputFormatter implements OutputFormatterContract
+{
+    public function format(string $markdown): string
+    {
+        return "FORMATTED: $markdown";
+    }
+}
+```
 
 ## Changelog
 

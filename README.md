@@ -19,7 +19,6 @@ Laravel docs from the comfort of your terminal.
 - [Getting started](#getting-started)
 - [Usage](#usage)
 - [Changelog](#changelog)
-- [Contributing](#contributing)
 - [Credits](#credits)
 - [License](#license)
 

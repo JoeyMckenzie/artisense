@@ -29,7 +29,7 @@ Artisense is meant to be a local-first offline copy of the Laravel documentation
 commands that allow you to locally store and search the laravel documentation from the comfort of your terminal.
 
 If you're anything like me and living in the terminal, those precious seconds `alt` + `tab`ing between code editor and
-browser to review the Laravel documentation really adds up. Why not make docs accessible from the terminal?
+browser to review the Laravel documentation really adds up (who has that kinda time?). Why not make docs accessible from the terminal?
 
 ## How it works
 

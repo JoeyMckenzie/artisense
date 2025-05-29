@@ -9,10 +9,13 @@ use Artisense\Enums\DocumentationVersion;
 use Artisense\Enums\SearchPreference;
 use Artisense\Exceptions\ArtisenseConfigurationException;
 use Artisense\Exceptions\InvalidOutputFormatterException;
-use Artisense\Support\Formatters\BasicMarkdownFormatter;
+use Artisense\Formatters\BasicMarkdownFormatter;
 use Illuminate\Contracts\Config\Repository as Config;
 use ReflectionClass;
 
+/**
+ * @internal
+ */
 final readonly class ArtisenseConfiguration
 {
     public function __construct(

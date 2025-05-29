@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $heading
  * @property string $markdown
  * @property string $content
- * @property float[] $embedding
  * @property string $path
  * @property string $version
  * @property string $link

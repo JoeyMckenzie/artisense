@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Tests\Support;
 
-use Artisense\Support\Services\StorageManager;
+use Artisense\Support\StorageManager;
 use ErrorException;
 use Illuminate\Support\Facades\File;
 

@@ -8,8 +8,8 @@ use Artisense\Actions\SeedDocsAction;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Models\DocumentationEntry;
-use Artisense\Support\Services\DocumentationDatabaseManager;
-use Artisense\Support\Services\StorageManager;
+use Artisense\Support\DocumentationDatabaseManager;
+use Artisense\Support\StorageManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 

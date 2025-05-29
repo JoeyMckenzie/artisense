@@ -8,7 +8,7 @@ use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
 use Artisense\Models\DocumentationEntry;
-use Artisense\Support\Services\StorageManager;
+use Artisense\Support\StorageManager;
 use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Str;
 use League\CommonMark\CommonMarkConverter;

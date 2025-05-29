@@ -7,7 +7,7 @@ namespace Artisense\Tests\Actions;
 use Artisense\Actions\DownloadDocsAction;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseException;
-use Artisense\Support\Services\StorageManager;
+use Artisense\Support\StorageManager;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Factory as Http;
 use Illuminate\Support\Facades\File;

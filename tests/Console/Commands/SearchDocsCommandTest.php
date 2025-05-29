@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\SearchDocsCommand;
-use Artisense\Enums\DocumentationVersion;
-use Artisense\Support\Services\VersionManager;
-use Artisense\Tests\Fixtures\TestOutputFormatter;
+use Artisense\Models\DocumentationEntry;
 use Illuminate\Support\Facades\Config;
 use Symfony\Component\Console\Command\Command;
 
@@ -15,11 +13,9 @@ covers(SearchDocsCommand::class);
 
 describe(SearchDocsCommand::class, function (): void {
     beforeEach(function (): void {
-        // Create the docs table
         $this->connection->statement('DROP TABLE IF EXISTS docs');
         $this->connection->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
 
-        // Insert test data for Introduction
         $this->db->insert([
             'title' => 'Artisan Console',
             'heading' => 'Introduction',
@@ -30,7 +26,6 @@ describe(SearchDocsCommand::class, function (): void {
             'link' => 'https://laravel.com/docs/12.x/artisan#introduction',
         ]);
 
-        // Insert test data for Writing Commands
         $this->db->insert([
             'title' => 'Artisan Console',
             'heading' => 'Writing Commands',
@@ -43,111 +38,31 @@ describe(SearchDocsCommand::class, function (): void {
     });
 
     it('returns search results when matches are found', function (): void {
+        // Arrange & Act & Assert
         $this->artisan(SearchDocsCommand::class)
-            ->expectsQuestion('What are you looking for?', 'artisan command')
-            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsSearch('Enter a search term to find relevant information:', '1 - 12.x - Artisan Console - Introduction', 'artisan command', ['1 - 12.x - Artisan Console - Introduction'])
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
-            ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('displays a message when no results are found', function (): void {
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class)
-            ->expectsQuestion('What are you looking for?', 'reverb')
-            ->expectsOutput('No results found for your query.')
             ->assertExitCode(Command::SUCCESS);
     });
 
     it('handles multiple search results', function (): void {
-        // Act & Assert
+        // Arrange & Act & Assert
         $this->artisan(SearchDocsCommand::class)
-            ->expectsQuestion('What are you looking for?', 'artisan')
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
-            ->expectsOutputToContain('Artisan Console - Writing Commands')
-            ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
-            ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('returns search results when using --query option', function (): void {
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
-            ->expectsOutput('🔍 Found relevant information:')
+            ->expectsSearch('Enter a search term to find relevant information:', '1 - 12.x - Artisan Console - Introduction', 'artisan', [
+                '1 - 12.x - Artisan Console - Introduction',
+                '2 - 12.x - Artisan Console - Writing Commands',
+            ])
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
-            ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('displays a message when no results are found using --query option', function (): void {
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class, [
-            '--query' => 'reverb',
-            '--limit' => 2,
-        ])
-            ->expectsOutput('No results found for your query.')
-            ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('handles multiple search results when using --query option', function (): void {
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan'])
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
-            ->expectsOutputToContain('Artisan Console - Writing Commands')
-            ->expectsOutputToContain('In addition to the commands provided with Artisan, you may build your own custom commands.')
-            ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('formats markdown with proper syntax highlighting', function (): void {
-        // Arrange, insert test data with various markdown elements
-        $markdown = <<<'MARKDOWN'
-# Heading 1
-
-## Heading 2
-
-### Heading 3
-
-**Bold text** and *italic text*
-
-- List item 1
-- List item 2
-
-1. Numbered item 1
-2. Numbered item 2
-
-```php
-echo 'Code block';
-```
-Inline `code` example
-
-[Link text](https://example.com)",
-MARKDOWN;
-
-        $this->db->insert([
-            'title' => 'Markdown Test',
-            'heading' => 'Formatting',
-            'markdown' => $markdown,
-            'content' => 'Markdown formatting test',
-            'path' => 'markdown-test.md',
-            'version' => $this->version->value,
-            'link' => 'https://laravel.com/docs/12.x/markdown-test',
-        ]);
-
-        // Act & Assert, we're not checking specific formatting here, just that it doesn't error
-        // and that the content is still present, but h1 headings should be skipped
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'markdown formatting'])
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Markdown Test - Formatting')
-            ->expectsOutputToContain($markdown)
             ->assertExitCode(Command::SUCCESS);
     });
 
     it('excludes h1 headings from search results', function (): void {
         // Arrange, insert test data with h1 heading (title equals heading)
-        $this->connection->table('docs')->insert([
+        DocumentationEntry::insert([
             'title' => 'H1 Heading',
             'heading' => 'H1 Heading', // This is an h1 heading (title equals heading)
             'markdown' => "# H1 Heading\n\nThis is content under an h1 heading.",
@@ -158,7 +73,7 @@ MARKDOWN;
         ]);
 
         // Insert a regular section with h2 heading
-        $this->connection->table('docs')->insert([
+        DocumentationEntry::insert([
             'title' => 'Test Document',
             'heading' => 'H2 Section', // This is not an h1 heading (title doesn't equal heading)
             'markdown' => "## H2 Section\n\nThis is content under an h2 heading.",
@@ -169,77 +84,41 @@ MARKDOWN;
         ]);
 
         // Act & Assert - Verify that h1 headings are excluded from search results
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'heading'])
-            ->expectsOutput('🔍 Found relevant information:')
+        $this->artisan(SearchDocsCommand::class)
+            ->expectsSearch('Enter a search term to find relevant information:', '4 - 12.x - Test Document - H2 Section', 'H2 Section', ['4 - 12.x - Test Document - H2 Section'])
             ->doesntExpectOutputToContain('H1 Heading') // h1 heading should be excluded
             ->expectsOutputToContain('Test Document - H2 Section - 12.x') // h2 heading should be included
             ->expectsOutputToContain('This is content under an h2 heading.')
             ->assertExitCode(Command::SUCCESS);
     });
 
-    it('formats output using a custom formatter when configured', function (): void {
+    it('returns failure if configuration version throws exception', function (): void {
         // Arrange
-        Config::set('artisense.formatter', TestOutputFormatter::class);
+        Config::set('artisense.version', 'invalid-version');
 
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
-            ->expectsOutputToContain('FORMATTED: Artisan is the command-line interface included with Laravel.')
-            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
-            ->assertExitCode(Command::SUCCESS);
+        $this->artisan(SearchDocsCommand::class)
+            ->expectsOutputToContain("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
+            ->assertExitCode(Command::FAILURE);
     });
 
-    it('falls back to raw markdown when no formatter is configured', function (): void {
+    it('returns failure if configuration search preference throws exception', function (): void {
         // Arrange
-        Config::set('artisense.formatter');
+        Config::set('artisense.search.preference', 'invalid-preference');
 
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
-            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
-            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
-            ->assertExitCode(Command::SUCCESS);
+        $this->artisan(SearchDocsCommand::class)
+            ->expectsOutputToContain('Invalid search preference. Must be either "ordered" or "unordered".')
+            ->assertExitCode(Command::FAILURE);
     });
 
-    it('falls back to basic formatting when formatter class is invalid', function (): void {
+    it('returns failure if configuration search proximity throws exception', function (): void {
         // Arrange
-        Config::set('artisense.formatter', 'NonExistentFormatter');
+        Config::set('artisense.search.proximity', 'invalid-proximity');
 
         // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--query' => 'artisan command'])
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
-            ->expectsOutputToContain('Failed to format markdown with the configured formatter, using basic formatting.')
-            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
-            ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
-            ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('allows for searching specific version if flag is passed', function (): void {
-        // Arrange
-        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_12);
-
-        $this->db->insert([
-            'title' => 'Artisan Console (11.x)',
-            'heading' => 'Introduction (11.x)',
-            'markdown' => 'Artisan is the command-line interface included with Laravel. (11.x)',
-            'content' => 'Artisan is the command-line interface included with Laravel. (11.x)',
-            'path' => 'artisan.md',
-            'version' => DocumentationVersion::VERSION_11->value,
-            'link' => 'https://laravel.com/docs/11.x/artisan#introduction',
-        ]);
-
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class, ['--docVersion' => '11.x'])
-            ->expectsQuestion('What are you looking for?', 'artisan command')
-            ->expectsOutput('🔍 Found relevant information:')
-            ->expectsOutputToContain('Artisan Console (11.x) - Introduction (11.x) - 11.x')
-            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel. (11.x)')
-            ->expectsOutputToContain('Learn more: https://laravel.com/docs/11.x/artisan#introduction')
-            ->assertExitCode(Command::SUCCESS);
-
-        expect(app(VersionManager::class)->getVersion())->toBe(DocumentationVersion::VERSION_11);
+        $this->artisan(SearchDocsCommand::class)
+            ->expectsOutputToContain('Search proximity must be a positive integer.')
+            ->assertExitCode(Command::FAILURE);
     });
 });

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace Artisense\Console\Commands;
 
 use Artisense\ArtisenseConfiguration;
-use Artisense\Console\Concerns\ValidatesVersionOption;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Exceptions\ArtisenseConfigurationException;
 use Artisense\Exceptions\ArtisenseException;
-use Artisense\Support\Services\DocumentationDatabaseManager;
+use Artisense\Support\DocumentationDatabaseManager;
 use Illuminate\Console\Command;
 
 use function Laravel\Prompts\clear;
@@ -20,8 +19,6 @@ use function Laravel\Prompts\progress;
 
 final class InstallCommand extends Command
 {
-    use ValidatesVersionOption;
-
     public $signature = 'artisense:install';
 
     public $description = 'Installs artisesnse for the project.';
@@ -68,7 +65,7 @@ final class InstallCommand extends Command
             );
 
             clear();
-        } catch (ArtisenseConfigurationException $e) {
+        } catch (ArtisenseConfigurationException|ArtisenseException $e) {
             $this->error($e->getMessage());
 
             return self::FAILURE;

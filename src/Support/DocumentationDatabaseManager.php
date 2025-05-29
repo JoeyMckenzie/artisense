@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Support\Services;
+namespace Artisense\Support;
 
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Filesystem\Filesystem;
 
+/**
+ * @internal
+ */
 final readonly class DocumentationDatabaseManager
 {
     public function __construct(
@@ -46,7 +49,6 @@ final readonly class DocumentationDatabaseManager
                         heading,
                         markdown,
                         content,
-                        embedding,
                         path,
                         version,
                         link

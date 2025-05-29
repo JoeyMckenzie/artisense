@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Enums\SearchPreference;
+use Artisense\Formatters\BasicMarkdownFormatter;
 
 return [
 
@@ -31,15 +32,15 @@ return [
     |
     */
 
-    'formatter' => null,
+    'formatter' => BasicMarkdownFormatter::class,
 
     /*
     |--------------------------------------------------------------------------
     | Search Preference
     |--------------------------------------------------------------------------
     |
-    | Specifies the search preference to use when querying for documentation.
-    | Order searches are used by default, returning results using ordered
+    | Specifies the search preferences to use when querying for documentation.
+    | Ordered searches are used by default, returning results using ordered
     | phrase matching. You may choose your preference to adjust results.
     |
     */
@@ -48,19 +49,5 @@ return [
         'preference' => SearchPreference::ORDERED,
         'proximity' => 10,
     ],
-
-    /*
-    |--------------------------------------------------------------------------
-    | Open AI Integration
-    |--------------------------------------------------------------------------
-    |
-    | Specifies the Open AI API key and organization for an enhanced artisense
-    | experience. If enabled, artisense will use embeddings to search docs
-    | rather than full-text search with SQLite that is enabled by default.
-    |
-    */
-
-    'openai_api_key' => null,
-    'openai_chunk_size' => 100,
 
 ];

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Artisense\Support\Formatters;
+namespace Artisense\Formatters;
 
 use Artisense\Contracts\OutputFormatterContract;
 use Artisense\Exceptions\OutputFormatterException;

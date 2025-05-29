@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Tests\Support;
 
-use Artisense\Support\Services\DocumentationDatabaseManager;
+use Artisense\Support\DocumentationDatabaseManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 

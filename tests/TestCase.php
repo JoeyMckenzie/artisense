@@ -6,6 +6,7 @@ namespace Artisense\Tests;
 
 use Artisense\ArtisenseServiceProvider;
 use Artisense\Enums\DocumentationVersion;
+use Artisense\Enums\SearchPreference;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
@@ -19,7 +20,7 @@ class TestCase extends Orchestra
     protected string $storagePath;
 
     protected string $dbPath {
-        get => $this->storagePath.'/artisense.sqlite';
+        get => $this->storagePath . '/artisense.sqlite';
     }
 
     protected DocumentationVersion $version;
@@ -34,7 +35,7 @@ class TestCase extends Orchestra
     protected function setUp(): void
     {
         parent::setUp();
-        self::setUpVersion();
+        self::setupConfiguration();
         self::setUpStorage();
         self::setUpTestDatabase();
     }
@@ -53,10 +54,12 @@ class TestCase extends Orchestra
         ];
     }
 
-    private function setUpVersion(): void
+    private function setupConfiguration(): void
     {
         $this->version = DocumentationVersion::VERSION_12;
         Config::set('artisense.version', $this->version->value);
+        Config::set('artisense.search.preference', SearchPreference::ORDERED);
+        Config::set('artisense.search.proximity', 5);
     }
 
     private function setUpStorage(): void

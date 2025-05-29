@@ -10,7 +10,7 @@ use Artisense\Console\Commands\InstallCommand;
 use Artisense\Console\Commands\SearchDocsCommand;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
-use Artisense\Support\Services\StorageManager;
+use Artisense\Support\StorageManager;
 use Illuminate\Contracts\Config\Repository as Config;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;

@@ -2,6 +2,17 @@
 
 All notable changes to `artisense` will be documented in this file.
 
+## v0.2.0 - 2025-05-29
+
+### What's new?
+
+- Breaking changes from v0.1.0
+- Rewrote majority of the commands
+- Commands are now based on [Laravel Prompts](https://laravel.com/docs/12.x/prompts)
+- Refactors configuration for better encapsulation
+
+**Full Changelog**: https://github.com/JoeyMckenzie/artisense/compare/v0.1.0...v0.2.0
+
 ## v0.1.0 - 2025-05-24
 
 ### What's new?

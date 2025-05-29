@@ -25,12 +25,15 @@ Laravel docs from the comfort of your terminal.
 
 ## Motivation
 
-Artisense is meant to be a local-first copy of the Laravel documentation. Artisense is a set of artisan
+Artisense is meant to be a local-first offline copy of the Laravel documentation. Artisense is a set of artisan
 commands that allow you to locally store and search the laravel documentation from the comfort of your terminal.
+
+If you're anything like me and living in the terminal, those precious seconds `alt` + `tab`ing between code editor and
+browser to review the Laravel documentation really adds up. Why not make docs accessible from the terminal?
 
 ## How it works
 
-At its core, artisense is a SQLite database that lives within your `storage_path()` underneath an `/artisense` folder:
+At its core, artisense is a SQLite database that lives within your `storage_path()` underneath an `artisense/` folder:
 
 ```bash
 your-laravel-app/

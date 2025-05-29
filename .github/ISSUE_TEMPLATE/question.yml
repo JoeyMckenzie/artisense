@@ -1,0 +1,11 @@
+name: Question
+description: Ask a question or get support
+title: "[Question]: "
+labels: [ question ]
+body:
+  - type: textarea
+    id: your-question
+    attributes:
+      label: What's your question?
+      description: Please be as specific as possible.
+      required: true

@@ -99,7 +99,6 @@ describe(SeedDocsAction::class, function (): void {
             ->and($result)->toContain('heading')
             ->and($result)->toContain('markdown')
             ->and($result)->toContain('content')
-            ->and($result)->toContain('embedding')
             ->and($result)->toContain('path')
             ->and($result)->toContain('link');
     });

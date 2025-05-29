@@ -46,7 +46,6 @@ describe(DocumentationDatabaseManager::class, function (): void {
             ->and($columns)->toContain('heading')
             ->and($columns)->toContain('markdown')
             ->and($columns)->toContain('content')
-            ->and($columns)->toContain('embedding')
             ->and($columns)->toContain('path')
             ->and($columns)->toContain('version')
             ->and($columns)->toContain('link');

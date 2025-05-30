@@ -30,7 +30,8 @@ Artisense is meant to be a local-first offline copy of the Laravel documentation
 commands that allow you to locally store and search the laravel documentation from the comfort of your terminal.
 
 If you're anything like me and living in the terminal, those precious seconds `alt` + `tab`ing between code editor and
-browser to review the Laravel documentation really adds up (who has that kinda time?). Why not make docs accessible from the terminal?
+browser to review the Laravel documentation really adds up (who has that kinda time?). Why not make docs accessible from
+the terminal?
 
 ## How it works
 
@@ -267,6 +268,16 @@ filter on search results.
 For example, if you have versions `12.x`, `11.x`, and master installed, all search results will be returned:
 
 ```bash
+php artisan artisense:search
+
+ ┌ Enter a search term to find relevant information: ─────────────────┐
+ │ validation                                                         │
+ ├────────────────────────────────────────────────────────────────────┤
+ │   7494 - 11.x - Validation - Accessing Additional Data           ┃ │
+ │   11237 - master - Validation - Accessing Additional Data        │ │
+ │   3718 - 12.x - Validation - Accessing Additional Data           │ │
+ └────────────────────────────────────────────────────────────────────┘
+  Use at least a few characters to get relevant results.
 ```
 
 ### Formatting

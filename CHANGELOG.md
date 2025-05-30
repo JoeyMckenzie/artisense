@@ -2,6 +2,14 @@
 
 All notable changes to `artisense` will be documented in this file.
 
+## v0.2.1 - 2025-05-30
+
+### What's new?
+
+- Adds support for handling multiple versions when specified within `artisense.php` config
+
+**Full Changelog**: https://github.com/JoeyMckenzie/artisense/compare/v0.2.0...v0.2.1
+
 ## v0.2.0 - 2025-05-29
 
 ### What's new?

@@ -24,7 +24,8 @@ class TestCase extends Orchestra
         get => $this->storagePath . '/artisense.sqlite';
     }
 
-    protected DocumentationVersion $version;
+    /** @var DocumentationVersion|DocumentationVersion[] */
+    protected DocumentationVersion|array $version;
 
     protected ConnectionInterface $connection;
 

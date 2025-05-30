@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Tests\Console\Commands;
 
 use Artisense\Console\Commands\SearchDocsCommand;
+use Artisense\Enums\DocumentationVersion;
 use Artisense\Models\DocumentationEntry;
 use Illuminate\Support\Facades\Config;
 use Symfony\Component\Console\Command\Command;
@@ -16,7 +17,7 @@ describe(SearchDocsCommand::class, function (): void {
         $this->connection->statement('DROP TABLE IF EXISTS docs');
         $this->connection->statement('CREATE VIRTUAL TABLE docs USING fts5(title, heading, markdown, content, path, version, link)');
 
-        $this->db->insert([
+        DocumentationEntry::insert([
             'title' => 'Artisan Console',
             'heading' => 'Introduction',
             'markdown' => 'Artisan is the command-line interface included with Laravel.',
@@ -26,7 +27,7 @@ describe(SearchDocsCommand::class, function (): void {
             'link' => 'https://laravel.com/docs/12.x/artisan#introduction',
         ]);
 
-        $this->db->insert([
+        DocumentationEntry::insert([
             'title' => 'Artisan Console',
             'heading' => 'Writing Commands',
             'markdown' => 'In addition to the commands provided with Artisan, you may build your own custom commands.',
@@ -44,6 +45,37 @@ describe(SearchDocsCommand::class, function (): void {
             ->expectsOutputToContain('Artisan Console - Introduction - 12.x')
             ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
             ->expectsOutputToContain('Learn more: https://laravel.com/docs/12.x/artisan#introduction')
+            ->assertExitCode(Command::SUCCESS);
+    });
+
+    it('returns search results when matches are found for multiple versions', function (): void {
+        // Arrange
+        DocumentationEntry::insert([
+            'title' => 'Artisan Console (11.x)',
+            'heading' => 'Introduction (11.x)',
+            'markdown' => 'Artisan is the command-line interface included with Laravel.',
+            'content' => 'Artisan is the command-line interface included with Laravel.',
+            'path' => 'artisan.md',
+            'version' => DocumentationVersion::VERSION_11,
+            'link' => 'https://laravel.com/docs/11.x/artisan#introduction',
+        ]);
+
+        Config::set('artisense.version', [
+            DocumentationVersion::VERSION_11,
+            DocumentationVersion::VERSION_12,
+        ]);
+
+        $expectedSearchResults = [
+            '1 - 12.x - Artisan Console - Introduction',
+            '3 - 11.x - Artisan Console (11.x) - Introduction (11.x)',
+        ];
+
+        // Act & Assert
+        $this->artisan(SearchDocsCommand::class)
+            ->expectsSearch('Enter a search term to find relevant information:', '3 - 11.x - Artisan Console (11.x) - Introduction - (11.x)', 'artisan command', $expectedSearchResults)
+            ->expectsOutputToContain('Artisan Console (11.x) - Introduction (11.x) - 11.x')
+            ->expectsOutputToContain('Artisan is the command-line interface included with Laravel.')
+            ->expectsOutputToContain('Learn more: https://laravel.com/docs/11.x/artisan#introduction')
             ->assertExitCode(Command::SUCCESS);
     });
 
@@ -90,35 +122,5 @@ describe(SearchDocsCommand::class, function (): void {
             ->expectsOutputToContain('Test Document - H2 Section - 12.x') // h2 heading should be included
             ->expectsOutputToContain('This is content under an h2 heading.')
             ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('returns failure if configuration version throws exception', function (): void {
-        // Arrange
-        Config::set('artisense.version', 'invalid-version');
-
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class)
-            ->expectsOutputToContain("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
-            ->assertExitCode(Command::FAILURE);
-    });
-
-    it('returns failure if configuration search preference throws exception', function (): void {
-        // Arrange
-        Config::set('artisense.search.preference', 'invalid-preference');
-
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class)
-            ->expectsOutputToContain('Invalid search preference. Must be either "ordered" or "unordered".')
-            ->assertExitCode(Command::FAILURE);
-    });
-
-    it('returns failure if configuration search proximity throws exception', function (): void {
-        // Arrange
-        Config::set('artisense.search.proximity', 'invalid-proximity');
-
-        // Act & Assert
-        $this->artisan(SearchDocsCommand::class)
-            ->expectsOutputToContain('Search proximity must be a positive integer.')
-            ->assertExitCode(Command::FAILURE);
     });
 });

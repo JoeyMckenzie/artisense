@@ -7,8 +7,6 @@ namespace Artisense\Console\Commands;
 use Artisense\ArtisenseConfiguration;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Enums\SearchPreference;
-use Artisense\Exceptions\ArtisenseConfigurationException;
-use Artisense\Exceptions\InvalidOutputFormatterException;
 use Artisense\Models\DocumentationEntry;
 use Illuminate\Console\Command;
 
@@ -22,19 +20,9 @@ final class SearchDocsCommand extends Command
 
     public function handle(ArtisenseConfiguration $config): int
     {
-        try {
-            $version = $config->getVersion();
-            $preference = $config->getSearchPreference();
-            $proximity = $config->getSearchProximity();
-        } catch (ArtisenseConfigurationException $e) {
-            $this->error($e->getMessage());
-
-            return self::FAILURE;
-        }
-
         $result = search(
             label: 'Enter a search term to find relevant information:',
-            options: fn (string $value): array => $this->getSearchResults($value, $version, $preference, $proximity),
+            options: fn (string $value): array => $this->getSearchResults($value, $config),
             placeholder: 'Installing Reverb, handling Stripe webhooks, etc.',
             hint: 'Use at least a few characters to get relevant results.',
         );
@@ -48,6 +36,7 @@ final class SearchDocsCommand extends Command
                     'heading',
                     'markdown',
                     'link',
+                    'version',
                 ]);
 
             if ($entry === null) {
@@ -60,17 +49,12 @@ final class SearchDocsCommand extends Command
             $heading = $entry->heading;
             $markdown = $entry->markdown;
             $link = $entry->link;
+            $rowVersion = $entry->version;
 
-            $this->info("<fg=yellow;options=bold>$title - $heading - $version->value</>");
+            $this->info("<fg=yellow;options=bold>$title - $heading - $rowVersion</>");
 
-            try {
-                $formatter = $config->getOutputFormatter();
-                $formatted = $formatter->format($markdown);
-                $this->line($formatted);
-            } catch (InvalidOutputFormatterException $e) {
-                $this->warn('Failed to format markdown with the configured formatter.');
-                $this->warn($e->getMessage());
-            }
+            $formatted = $config->formatter->format($markdown);
+            $this->line($formatted);
 
             $this->info("<fg=blue>Learn more: $link</>");
             $this->newLine();
@@ -82,29 +66,36 @@ final class SearchDocsCommand extends Command
     /**
      * @return string[]
      */
-    private function getSearchResults(
-        string $value,
-        DocumentationVersion $version,
-        SearchPreference $preference,
-        int $searchProximity): array
+    private function getSearchResults(string $value, ArtisenseConfiguration $config): array
     {
         if (mb_strlen($value) < 3) {
             return [];
         }
 
-        $ftsQuery = match ($preference) {
+        $ftsQuery = match ($config->preference) {
             SearchPreference::ORDERED => $value,
-            SearchPreference::UNORDERED => "NEAR($value, $searchProximity)"
+            SearchPreference::UNORDERED => "NEAR($value, $config->proximity)"
         };
 
-        $results = DocumentationEntry::query()
-            ->whereRaw('content MATCH ?', [$ftsQuery])
-            ->where('heading', '!=', 'title')
-            ->where('title', '!=', '[Untitled]')
-            ->where('version', $version->value)
-            ->orderByRaw('rank')
-            ->limit(5)
-            ->get(['rowid', 'title', 'heading', 'version']);
+        if ($config->version instanceof DocumentationVersion) {
+            $results = DocumentationEntry::query()
+                ->whereRaw('content MATCH ?', [$ftsQuery])
+                ->where('heading', '!=', 'title')
+                ->where('title', '!=', '[Untitled]')
+                ->where('version', $config->version->value)
+                ->orderByRaw('rank')
+                ->limit(5)
+                ->get(['rowid', 'title', 'heading', 'version']);
+        } else {
+            $results = DocumentationEntry::query()
+                ->whereRaw('content MATCH ?', [$ftsQuery])
+                ->where('heading', '!=', 'title')
+                ->where('title', '!=', '[Untitled]')
+                ->whereIn('version', collect($config->version)->map(fn (DocumentationVersion $version) => $version->value))
+                ->orderByRaw('rank')
+                ->limit(5)
+                ->get(['rowid', 'title', 'heading', 'version']);
+        }
 
         /** @var string[] $values */
         $values = count($results) > 0

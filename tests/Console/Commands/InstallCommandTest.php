@@ -9,7 +9,6 @@ use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Exceptions\ArtisenseException;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Config;
 use Mockery;
 use Symfony\Component\Console\Command\Command;
 
@@ -43,31 +42,6 @@ describe(InstallCommand::class, function (): void {
             ->expectsOutput('Storing documentation...')
             ->expectsOutput('✅  Artisense is ready!')
             ->assertExitCode(Command::SUCCESS);
-    });
-
-    it('returns failure when an invalid documentation version is provided', function (): void {
-        // Arrange
-        $invalidVersion = 'invalid-version';
-
-        // Act
-        Config::set('artisense.version', $invalidVersion);
-
-        // Assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput("Documentation version must be a valid version string (e.g., '12.x', '11.x', 'master', etc.).")
-            ->assertExitCode(Command::FAILURE);
-    });
-
-    it('returns failure when no version is set', function (): void {
-        // Arrange, remove the version from config to trigger the missing version exception
-        Config::set('artisense.version');
-
-        // Act & Assert
-        $this->artisan(InstallCommand::class)
-            ->expectsOutput('🔧 Installing artisense...')
-            ->expectsOutput('Documentation version must be configured in your config file.')
-            ->assertExitCode(Command::FAILURE);
     });
 
     it('returns failure when download docs action throws an exception', function (): void {

@@ -39,13 +39,18 @@ final class InstallCommand extends Command
         $this->seedDocsAction = $seedDocsAction;
 
         try {
-            $version = $config->getVersion();
+            $version = $config->version;
+
+            /** @var string[] $defaultValues */
+            $defaultValues = $version instanceof DocumentationVersion
+                ? [$version->value]
+                : collect($version)->map(fn (DocumentationVersion $version): string => $version->value)->toArray();
 
             /** @var string[] $versions */
             $versions = multiselect(
                 label: 'Which version of documentation would you like to install?',
                 options: DocumentationVersion::values(),
-                default: [$version->value],
+                default: $defaultValues,
                 required: 'You must select at least one version.',
                 hint: 'You can change the default version within the artisense.php config file.'
             );

@@ -7,6 +7,7 @@ namespace Artisense\Tests;
 use Artisense\ArtisenseServiceProvider;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Enums\SearchPreference;
+use Artisense\Formatters\BasicMarkdownFormatter;
 use Illuminate\Database\ConnectionInterface;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Config;
@@ -57,7 +58,8 @@ class TestCase extends Orchestra
     private function setupConfiguration(): void
     {
         $this->version = DocumentationVersion::VERSION_12;
-        Config::set('artisense.version', $this->version->value);
+        Config::set('artisense.version', $this->version);
+        Config::set('artisense.formatter', BasicMarkdownFormatter::class);
         Config::set('artisense.search.preference', SearchPreference::ORDERED);
         Config::set('artisense.search.proximity', 5);
     }

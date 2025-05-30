@@ -8,124 +8,122 @@ use Artisense\Contracts\OutputFormatterContract;
 use Artisense\Enums\DocumentationVersion;
 use Artisense\Enums\SearchPreference;
 use Artisense\Exceptions\ArtisenseConfigurationException;
-use Artisense\Exceptions\InvalidOutputFormatterException;
-use Artisense\Formatters\BasicMarkdownFormatter;
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Validation\Factory;
+use Illuminate\Validation\Rule;
 use ReflectionClass;
 
 /**
  * @internal
  */
-final readonly class ArtisenseConfiguration
+final class ArtisenseConfiguration
 {
-    public function __construct(
-        private Config $config
-    ) {
-        //
+    /** @var DocumentationVersion|DocumentationVersion[] */
+    public DocumentationVersion|array $version {
+        get {
+            return $this->version;
+        }
+    }
+
+    public OutputFormatterContract $formatter {
+        get {
+            return $this->formatter;
+        }
+    }
+
+    public SearchPreference $preference {
+        get {
+            return $this->preference;
+        }
+    }
+
+    public int $proximity {
+        get {
+            return $this->proximity;
+        }
     }
 
     /**
-     * @throws InvalidOutputFormatterException
+     * @throws ArtisenseConfigurationException
      */
-    public function getOutputFormatter(): OutputFormatterContract
-    {
-        /** @var null|class-string $configuredFormatter */
-        $configuredFormatter = $this->config->get('artisense.formatter');
+    public function __construct(
+        private readonly Config $config,
+        private readonly Factory $validator
+    ) {
+        self::ensureValidConfiguration();
+    }
 
-        if ($configuredFormatter === null) {
-            $configuredFormatter = BasicMarkdownFormatter::class;
-        } elseif (! self::validateFormatter($configuredFormatter)) {
-            throw InvalidOutputFormatterException::mustInheritFromOutputFormatter($configuredFormatter);
+    /**
+     * @throws ArtisenseConfigurationException
+     */
+    private function ensureValidConfiguration(): void
+    {
+        /** @var array{version: DocumentationVersion, preference: SearchPreference, proximity: int, formatter: class-string} $schema */
+        $schema = [
+            'version' => $this->config->get('artisense.version'),
+            'preference' => $this->config->get('artisense.search.preference'),
+            'proximity' => $this->config->get('artisense.search.proximity'),
+            'formatter' => $this->config->get('artisense.formatter'),
+        ];
+
+        $rules = $this->validator->make($schema, [
+            'version' => ['required', $this->mustBeValidDocumentationValue(...)],
+            'preference' => ['required', Rule::enum(SearchPreference::class)],
+            'proximity' => 'required|integer|min:1|max:50',
+            'formatter' => ['nullable', $this->mustImplementOutputFormatter(...)],
+        ]);
+
+        if ($rules->fails()) {
+            throw ArtisenseConfigurationException::invalidConfiguration($rules->errors()->first());
         }
 
         /** @var OutputFormatterContract $formatter */
-        $formatter = app($configuredFormatter);
+        $formatter = app($schema['formatter']);
 
-        return $formatter;
+        $this->version = $schema['version'];
+        $this->formatter = $formatter;
+        $this->preference = $schema['preference'];
+        $this->proximity = $schema['proximity'];
     }
 
-    /**
-     * @throws ArtisenseConfigurationException
-     */
-    public function getVersion(): DocumentationVersion
+    private function mustBeValidDocumentationValue(string $attribute, mixed $value, callable $fail): void
     {
-        $value = $this->config->get('artisense.version');
+        if (! is_array($value) && ! $value instanceof DocumentationVersion) {
+            $fail("$attribute must be an array or an instance of DocumentationVersion.");
 
-        if ($value instanceof DocumentationVersion) {
-            return $value;
+            return;
         }
 
+        if (is_array($value)) {
+            $allValuesAreValidVersionEnums = collect($value)->every(fn (mixed $version): bool => $version instanceof DocumentationVersion);
+            if (! $allValuesAreValidVersionEnums) {
+                $fail('When specifying multiple versions, all must be an instance of DocumentationVersion.');
+            }
+        }
+    }
+
+    private function mustImplementOutputFormatter(string $attribute, mixed $value, callable $fail): void
+    {
         if ($value === null) {
-            throw ArtisenseConfigurationException::missingVersion();
+            return;
         }
 
         if (! is_string($value)) {
-            throw ArtisenseConfigurationException::invalidVersion();
+            $fail("$attribute must be a valid class-string.");
+
+            return;
         }
 
-        $version = DocumentationVersion::tryFrom($value);
+        if (! class_exists($value)) {
+            $fail("$value was not found within the project.");
 
-        if ($version === null) {
-            throw ArtisenseConfigurationException::invalidVersion();
+            return;
         }
 
-        return $version;
-    }
+        $implementsOutputFormatter = new ReflectionClass($value)->implementsInterface(OutputFormatterContract::class);
 
-    /**
-     * @throws ArtisenseConfigurationException
-     */
-    public function getSearchPreference(): SearchPreference
-    {
-
-        $value = $this->config->get('artisense.search.preference');
-
-        if ($value instanceof SearchPreference) {
-            return $value;
+        if (! $implementsOutputFormatter) {
+            $fail("$value must implement OutputFormatterContract.");
         }
-
-        if ($value === null) {
-            throw ArtisenseConfigurationException::missingPreference();
-        }
-
-        if (! is_string($value)) {
-            throw ArtisenseConfigurationException::invalidPreference();
-        }
-
-        $preference = SearchPreference::tryFrom($value);
-
-        if ($preference === null) {
-            throw ArtisenseConfigurationException::invalidPreference();
-        }
-
-        return $preference;
-    }
-
-    /**
-     * @throws ArtisenseConfigurationException
-     */
-    public function getSearchProximity(): int
-    {
-        $value = $this->config->get('artisense.search.proximity', 10);
-
-        if (! is_int($value) || $value < 1) {
-            throw ArtisenseConfigurationException::invalidProximity();
-        }
-
-        return $value;
-    }
-
-    /**
-     * @param  class-string  $formatter
-     *
-     * @throws InvalidOutputFormatterException
-     */
-    private function validateFormatter(string $formatter): bool
-    {
-        if (! class_exists($formatter)) {
-            throw InvalidOutputFormatterException::invalidFormatterClass($formatter);
-        }
-
-        return new ReflectionClass($formatter)->implementsInterface(OutputFormatterContract::class);
     }
 }

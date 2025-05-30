@@ -18,6 +18,7 @@ Laravel docs from the comfort of your terminal.
 - [How it works](#how-it-works)
 - [Getting started](#getting-started)
 - [Usage](#usage)
+    - [Versions](#versions)
     - [Formatting](#formatting)
 - [Changelog](#changelog)
 - [Credits](#credits)
@@ -235,6 +236,38 @@ and if you select an entry:
 
 By default, artisense returns the raw markdown from the content that was used to find the relevant section. A link to
 the section within the documentation will also included.
+
+### Versions
+
+Within your `artisense.php` configuration file, you may specify one or more versions of Laravel documentation to use
+when processes, storing, and searching documentations with artisense commands:
+
+```php
+return [
+
+    // Other configurations...
+    
+    // Specify a version using the `DocumentationVersion` enum
+    'version' => DocumentationVersion::MASTER
+    
+    // Specify versions using the `DocumentationVersion` enum
+    'version' => [
+        DocumentationVersion::VERSION_12,
+        DocumentationVersion::VERSION_11,
+        DocumentationVersion::MASTER,
+    ]
+    
+]
+```
+
+When installing documentation, artisense will default to using the versions specified within your configuration file.
+When using the search commands, artisense will also use whichever versions are specified within your configuration to
+filter on search results.
+
+For example, if you have versions `12.x`, `11.x`, and master installed, all search results will be returned:
+
+```bash
+```
 
 ### Formatting
 

@@ -42,13 +42,15 @@ jobs:
         working-directory: ${{ github.workspace }}
 
       - name: Upload coverage reports to Codecov
-        if: ${{ !cancelled() && matrix.php == '8.4' && runner.os == 'Linux' }} # Only need to upload code coverage once
+        # Only need to upload code coverage once
+        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results to Codecov
-        if: ${{ !cancelled() && matrix.php == '8.4' && runner.os == 'Linux' }} # Only need to upload code coverage once
+        # Only need to upload code coverage once
+        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

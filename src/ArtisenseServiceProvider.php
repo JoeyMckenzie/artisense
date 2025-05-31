@@ -42,7 +42,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
 
             $this->app->bind(DownloadDocsActionContract::class, DownloadDocsAction::class);
             $this->app->bind(SeedDocsActionContract::class, SeedDocsAction::class);
-            $this->app->singleton(ArtisenseConfiguration::class, fn (Application $app): \Artisense\ArtisenseConfiguration => ArtisenseConfiguration::init($app));
+            $this->app->singleton(ArtisenseConfiguration::class, fn (Application $app): ArtisenseConfiguration => ArtisenseConfiguration::init($app));
 
             Model::unguard();
             Model::shouldBeStrict();

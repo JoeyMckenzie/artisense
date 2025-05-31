@@ -40,3 +40,8 @@ jobs:
       - name: Run CI checks
         run: bin/ci
         working-directory: ${{ github.workspace }}
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}

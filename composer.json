@@ -63,7 +63,7 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test:unit": "vendor/bin/pest",
         "test:watch": "vendor/bin/pest --watch",
-        "test:coverage": "vendor/bin/pest --coverage",
+        "test:coverage": "vendor/bin/pest --coverage-clover coverage.xml",
         "test:types": "vendor/bin/pest --type-coverage --min=100",
         "test:mutate": "vendor/bin/pest --mutate --min=100",
         "test:mutate:cache-clear": "vendor/bin/pest --mutate --min=100 --clear-cache",

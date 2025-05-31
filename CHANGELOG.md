@@ -2,6 +2,15 @@
 
 All notable changes to `artisense` will be documented in this file.
 
+## v0.2.3 - 2025-05-31
+
+### What's new?
+
+- Adds options to now cleanup artifacts (docs and zips) post install
+- Adds a new `artisense:clean` command
+
+**Full Changelog**: https://github.com/JoeyMckenzie/artisense/compare/v0.2.2...v0.2.3
+
 ## v0.2.2 - 2025-05-31
 
 ### What's new?

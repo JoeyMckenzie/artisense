@@ -1,10 +1,11 @@
 <div align="center" style="padding-top: 2rem;">
     <img src="art/logo.png" height="300" width="300" alt="logo"/>
     <div style="display: inline-block; margin-top: 2rem">
-        <img src="https://img.shields.io/packagist/v/joeymckenzie/artisense.svg?style=flat-square" alt="packgist downloads" />
-        <img src="https://img.shields.io/github/actions/workflow/status/joeymckenzie/artisense/run-ci.yml?branch=main&label=ci&style=flat-square" alt="ci" />
-        <img src="https://img.shields.io/github/actions/workflow/status/joeymckenzie/artisense/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square" alt="packgist downloads" />
-        <img src="https://img.shields.io/packagist/dt/joeymckenzie/artisense.svg?style=flat-square" alt="packgist downloads" />
+        <img src="https://img.shields.io/packagist/v/joeymckenzie/artisense.svg" alt="packgist downloads" />
+        <img src="https://img.shields.io/github/actions/workflow/status/joeymckenzie/artisense/run-ci.yml?branch=main&label=ci" alt="ci" />
+        <img src="https://img.shields.io/github/actions/workflow/status/joeymckenzie/artisense/fix-php-code-style-issues.yml?branch=main&label=code%20style" alt="packgist downloads" />
+        <img src="https://img.shields.io/packagist/dt/joeymckenzie/artisense.svg" alt="packgist downloads" />
+        <img src="https://codecov.io/gh/JoeyMckenzie/artisense/graph/badge.svg?token=AXMP8ZTMKD&style=flat-square" alt="codecov coverage report"/> 
     </div>
 </div>
 

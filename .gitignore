@@ -34,3 +34,4 @@ testbench.yaml
 
 # Coverage
 coverage.xml
+junit.xml

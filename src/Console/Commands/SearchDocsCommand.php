@@ -77,25 +77,14 @@ final class SearchDocsCommand extends Command
             SearchPreference::UNORDERED => "NEAR($value, $config->proximity)"
         };
 
-        if ($config->version instanceof DocumentationVersion) {
-            $results = DocumentationEntry::query()
-                ->whereRaw('content MATCH ?', [$ftsQuery])
-                ->where('heading', '!=', 'title')
-                ->where('title', '!=', '[Untitled]')
-                ->where('version', $config->version->value)
-                ->orderByRaw('rank')
-                ->limit(5)
-                ->get(['rowid', 'title', 'heading', 'version']);
-        } else {
-            $results = DocumentationEntry::query()
-                ->whereRaw('content MATCH ?', [$ftsQuery])
-                ->where('heading', '!=', 'title')
-                ->where('title', '!=', '[Untitled]')
-                ->whereIn('version', collect($config->version)->map(fn (DocumentationVersion $version) => $version->value))
-                ->orderByRaw('rank')
-                ->limit(5)
-                ->get(['rowid', 'title', 'heading', 'version']);
-        }
+        $results = DocumentationEntry::query()
+            ->whereRaw('content MATCH ?', [$ftsQuery])
+            ->where('heading', '!=', 'title')
+            ->where('title', '!=', '[Untitled]')
+            ->whereIn('version', collect($config->version)->map(fn (DocumentationVersion $version) => $version->value))
+            ->orderByRaw('rank')
+            ->limit(5)
+            ->get(['rowid', 'title', 'heading', 'version']);
 
         /** @var string[] $values */
         $values = count($results) > 0

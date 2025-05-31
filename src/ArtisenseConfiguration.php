@@ -9,7 +9,9 @@ use Artisense\Enums\DocumentationVersion;
 use Artisense\Enums\SearchPreference;
 use Artisense\Exceptions\ArtisenseConfigurationException;
 use Illuminate\Contracts\Config\Repository as Config;
-use Illuminate\Validation\Factory;
+use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Validation\Factory as Validator;
 use Illuminate\Validation\Rule;
 use ReflectionClass;
 
@@ -18,8 +20,8 @@ use ReflectionClass;
  */
 final class ArtisenseConfiguration
 {
-    /** @var DocumentationVersion|DocumentationVersion[] */
-    public DocumentationVersion|array $version {
+    /** @var DocumentationVersion[] */
+    public array $version {
         get {
             return $this->version;
         }
@@ -43,50 +45,69 @@ final class ArtisenseConfiguration
         }
     }
 
+    private function __construct(Config $config)
+    {
+        /** @var DocumentationVersion|DocumentationVersion[] $version */
+        $version = $config->get('artisense.version');
+
+        /** @var SearchPreference $preference */
+        $preference = $config->get('artisense.search.preference');
+
+        /** @var int $proximity */
+        $proximity = $config->get('artisense.search.proximity');
+
+        /** @var class-string $formatter */
+        $formatter = $config->get('artisense.formatter');
+
+        /** @var OutputFormatterContract $outputter */
+        $outputter = app($formatter);
+
+        $this->version = $version instanceof DocumentationVersion ? [$version] : $version;
+        $this->preference = $preference;
+        $this->proximity = $proximity;
+        $this->formatter = $outputter;
+    }
+
     /**
+     * @throws BindingResolutionException
      * @throws ArtisenseConfigurationException
      */
-    public function __construct(
-        private readonly Config $config,
-        private readonly Factory $validator
-    ) {
-        self::ensureValidConfiguration();
+    public static function init(Application $app): self
+    {
+        $config = $app->make(Config::class);
+        $validator = $app->make(Validator::class);
+
+        self::enforceValidConfiguration($validator, $config);
+
+        return new self($config);
     }
 
     /**
      * @throws ArtisenseConfigurationException
      */
-    private function ensureValidConfiguration(): void
+    private static function enforceValidConfiguration(Validator $validator, Config $config): void
     {
-        /** @var array{version: DocumentationVersion, preference: SearchPreference, proximity: int, formatter: class-string} $schema */
+        /** @var array{version: DocumentationVersion|DocumentationVersion[], preference: SearchPreference, proximity: int, formatter: class-string} $schema */
         $schema = [
-            'version' => $this->config->get('artisense.version'),
-            'preference' => $this->config->get('artisense.search.preference'),
-            'proximity' => $this->config->get('artisense.search.proximity'),
-            'formatter' => $this->config->get('artisense.formatter'),
+            'version' => $config->get('artisense.version'),
+            'preference' => $config->get('artisense.search.preference'),
+            'proximity' => $config->get('artisense.search.proximity'),
+            'formatter' => $config->get('artisense.formatter'),
         ];
 
-        $rules = $this->validator->make($schema, [
-            'version' => ['required', $this->mustBeValidDocumentationValue(...)],
+        $rules = $validator->make($schema, [
+            'version' => ['required', self::mustBeValidDocumentationValue(...)],
             'preference' => ['required', Rule::enum(SearchPreference::class)],
             'proximity' => 'required|integer|min:1|max:50',
-            'formatter' => ['nullable', $this->mustImplementOutputFormatter(...)],
+            'formatter' => ['nullable', self::mustImplementOutputFormatter(...)],
         ]);
 
         if ($rules->fails()) {
             throw ArtisenseConfigurationException::invalidConfiguration($rules->errors()->first());
         }
-
-        /** @var OutputFormatterContract $formatter */
-        $formatter = app($schema['formatter']);
-
-        $this->version = $schema['version'];
-        $this->formatter = $formatter;
-        $this->preference = $schema['preference'];
-        $this->proximity = $schema['proximity'];
     }
 
-    private function mustBeValidDocumentationValue(string $attribute, mixed $value, callable $fail): void
+    private static function mustBeValidDocumentationValue(string $attribute, mixed $value, callable $fail): void
     {
         if (! is_array($value) && ! $value instanceof DocumentationVersion) {
             $fail("$attribute must be an array or an instance of DocumentationVersion.");
@@ -102,7 +123,7 @@ final class ArtisenseConfiguration
         }
     }
 
-    private function mustImplementOutputFormatter(string $attribute, mixed $value, callable $fail): void
+    private static function mustImplementOutputFormatter(string $attribute, mixed $value, callable $fail): void
     {
         if ($value === null) {
             return;

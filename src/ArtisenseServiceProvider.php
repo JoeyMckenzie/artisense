@@ -12,8 +12,10 @@ use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
 use Artisense\Support\StorageManager;
 use Illuminate\Contracts\Config\Repository as Config;
+use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Factory as Validator;
 use Override;
 
 final class ArtisenseServiceProvider extends ServiceProvider
@@ -26,7 +28,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
         );
     }
 
-    public function boot(Config $config, StorageManager $disk): void
+    public function boot(Config $config, Validator $validator, StorageManager $disk): void
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
@@ -40,6 +42,7 @@ final class ArtisenseServiceProvider extends ServiceProvider
 
             $this->app->bind(DownloadDocsActionContract::class, DownloadDocsAction::class);
             $this->app->bind(SeedDocsActionContract::class, SeedDocsAction::class);
+            $this->app->singleton(ArtisenseConfiguration::class, fn (Application $app): \Artisense\ArtisenseConfiguration => ArtisenseConfiguration::init($app));
 
             Model::unguard();
             Model::shouldBeStrict();

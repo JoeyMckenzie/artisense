@@ -68,6 +68,8 @@
         "test:mutate": "vendor/bin/pest --mutate --min=100",
         "test:mutate:cache-clear": "vendor/bin/pest --mutate --min=100 --clear-cache",
         "test:ci": "vendor/bin/pest --mutate --min=100 --ci",
+        "testbench:install": "vendor/bin/testbench artisense:install",
+        "testbench:seach": "vendor/bin/testbench artisense:search",
         "test": [
             "@test:unit",
             "@test:coverage",

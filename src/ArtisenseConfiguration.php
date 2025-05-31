@@ -21,9 +21,9 @@ use ReflectionClass;
 final class ArtisenseConfiguration
 {
     /** @var DocumentationVersion[] */
-    public array $version {
+    public array $versions {
         get {
-            return $this->version;
+            return $this->versions;
         }
     }
 
@@ -62,7 +62,7 @@ final class ArtisenseConfiguration
         /** @var OutputFormatterContract $outputter */
         $outputter = app($formatter);
 
-        $this->version = $version instanceof DocumentationVersion ? [$version] : $version;
+        $this->versions = $version instanceof DocumentationVersion ? [$version] : $version;
         $this->preference = $preference;
         $this->proximity = $proximity;
         $this->formatter = $outputter;

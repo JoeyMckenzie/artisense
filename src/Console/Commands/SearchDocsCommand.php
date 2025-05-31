@@ -81,7 +81,7 @@ final class SearchDocsCommand extends Command
             ->whereRaw('content MATCH ?', [$ftsQuery])
             ->where('heading', '!=', 'title')
             ->where('title', '!=', '[Untitled]')
-            ->whereIn('version', collect($config->version)->map(fn (DocumentationVersion $version) => $version->value))
+            ->whereIn('version', collect($config->versions)->map(fn (DocumentationVersion $version) => $version->value))
             ->orderByRaw('rank')
             ->limit(5)
             ->get(['rowid', 'title', 'heading', 'version']);

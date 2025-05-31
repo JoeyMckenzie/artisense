@@ -26,7 +26,7 @@ describe(ArtisenseConfiguration::class, function (): void {
         $config = app(ArtisenseConfiguration::class);
 
         // Assert
-        expect($config->version)->toBe([DocumentationVersion::VERSION_12])
+        expect($config->versions)->toBe([DocumentationVersion::VERSION_12])
             ->and($config->formatter)->toBeInstanceOf(BasicMarkdownFormatter::class)
             ->and($config->preference)->toBe(SearchPreference::ORDERED)
             ->and($config->proximity)->toBe(10);
@@ -44,7 +44,7 @@ describe(ArtisenseConfiguration::class, function (): void {
         $config = app(ArtisenseConfiguration::class);
 
         // Assert
-        expect($config->version)->toBe($versions);
+        expect($config->versions)->toBe($versions);
     });
 
     it('throws exception for invalid version value', function (): void {

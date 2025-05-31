@@ -39,12 +39,10 @@ final class InstallCommand extends Command
         $this->seedDocsAction = $seedDocsAction;
 
         try {
-            $version = $config->version;
-
             /** @var string[] $defaultValues */
-            $defaultValues = $version instanceof DocumentationVersion
-                ? [$version->value]
-                : collect($version)->map(fn (DocumentationVersion $version): string => $version->value)->toArray();
+            $defaultValues = collect($config->versions)
+                ->map(fn (DocumentationVersion $version) => $version->value)
+                ->toArray();
 
             /** @var string[] $versions */
             $versions = multiselect(

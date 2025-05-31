@@ -2,6 +2,14 @@
 
 All notable changes to `artisense` will be documented in this file.
 
+## v0.2.2 - 2025-05-31
+
+### What's new?
+
+- Minor refactoring to configuration to improve boot time performance
+
+**Full Changelog**: https://github.com/JoeyMckenzie/artisense/compare/v0.2.1...v0.2.2
+
 ## v0.2.1 - 2025-05-30
 
 ### What's new?

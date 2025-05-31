@@ -59,10 +59,11 @@ class TestCase extends Orchestra
     private function setupConfiguration(): void
     {
         $this->version = DocumentationVersion::VERSION_12;
-        Config::set('artisense.version', $this->version);
+        Config::set('artisense.versions', $this->version);
         Config::set('artisense.formatter', BasicMarkdownFormatter::class);
         Config::set('artisense.search.preference', SearchPreference::ORDERED);
         Config::set('artisense.search.proximity', 5);
+        Config::set('artisense.retain_artifacts', true);
     }
 
     private function setUpStorage(): void

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Artisense\Console\Commands;
 
+use Artisense\Actions\CleanupArtifactsAction;
 use Artisense\ArtisenseConfiguration;
 use Artisense\Contracts\Actions\DownloadDocsActionContract;
 use Artisense\Contracts\Actions\SeedDocsActionContract;
@@ -32,6 +33,7 @@ final class InstallCommand extends Command
         DocumentationDatabaseManager $repositoryManager,
         DownloadDocsActionContract $downloadDocsAction,
         SeedDocsActionContract $seedDocsAction,
+        CleanupArtifactsAction $cleanupArtifactsAction
     ): int {
         $this->info('🔧 Installing artisense...');
 
@@ -66,6 +68,11 @@ final class InstallCommand extends Command
                 callback: fn (DocumentationVersion $documentationVersion) => $this->downloadAndInstallVersion($documentationVersion),
                 hint: 'This may take a while depending on the size of the documentation you are installing.'
             );
+
+            if (! $config->retainArtifacts) {
+                $this->line('Removing artifacts...');
+                $cleanupArtifactsAction->handle();
+            }
 
             clear();
         } catch (ArtisenseConfigurationException|ArtisenseException $e) {

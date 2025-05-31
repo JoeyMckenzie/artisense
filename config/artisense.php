@@ -19,7 +19,7 @@ return [
     |
     */
 
-    'version' => DocumentationVersion::VERSION_12,
+    'versions' => DocumentationVersion::VERSION_12,
 
     /*
     |--------------------------------------------------------------------------
@@ -49,5 +49,18 @@ return [
         'preference' => SearchPreference::ORDERED,
         'proximity' => 10,
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Retain Artifacts
+    |--------------------------------------------------------------------------
+    |
+    | Specifies the artificat retention policy artisense should use when processing
+    | Laravel documentation. If set to true, documentation markdown files along
+    | zip archives will be retained within the storage folder during install.
+    |
+    */
+
+    'retain_artifacts' => true,
 
 ];

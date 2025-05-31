@@ -16,6 +16,14 @@ use Illuminate\Validation\Rule;
 use ReflectionClass;
 
 /**
+ * @phpstan-type ConfigurationSchema array{
+ *     versions: DocumentationVersion|DocumentationVersion[],
+ *     formatter: class-string,
+ *     preference: SearchPreference,
+ *     proximity: int,
+ *     retain_artifacts: ?bool
+ * }
+ *
  * @internal
  */
 final class ArtisenseConfiguration
@@ -45,10 +53,16 @@ final class ArtisenseConfiguration
         }
     }
 
+    public bool $retainArtifacts {
+        get {
+            return $this->retainArtifacts;
+        }
+    }
+
     private function __construct(Config $config)
     {
         /** @var DocumentationVersion|DocumentationVersion[] $version */
-        $version = $config->get('artisense.version');
+        $version = $config->get('artisense.versions');
 
         /** @var SearchPreference $preference */
         $preference = $config->get('artisense.search.preference');
@@ -59,6 +73,9 @@ final class ArtisenseConfiguration
         /** @var class-string $formatter */
         $formatter = $config->get('artisense.formatter');
 
+        /** @var bool $retainArtifacts */
+        $retainArtifacts = $config->get('artisense.retain_artifacts');
+
         /** @var OutputFormatterContract $outputter */
         $outputter = app($formatter);
 
@@ -66,6 +83,7 @@ final class ArtisenseConfiguration
         $this->preference = $preference;
         $this->proximity = $proximity;
         $this->formatter = $outputter;
+        $this->retainArtifacts = $retainArtifacts;
     }
 
     /**
@@ -87,19 +105,21 @@ final class ArtisenseConfiguration
      */
     private static function enforceValidConfiguration(Validator $validator, Config $config): void
     {
-        /** @var array{version: DocumentationVersion|DocumentationVersion[], preference: SearchPreference, proximity: int, formatter: class-string} $schema */
+        /** @var ConfigurationSchema $schema */
         $schema = [
-            'version' => $config->get('artisense.version'),
+            'versions' => $config->get('artisense.versions'),
             'preference' => $config->get('artisense.search.preference'),
             'proximity' => $config->get('artisense.search.proximity'),
             'formatter' => $config->get('artisense.formatter'),
+            'retain_artifacts' => $config->get('artisense.retain_artifacts'),
         ];
 
         $rules = $validator->make($schema, [
-            'version' => ['required', self::mustBeValidDocumentationValue(...)],
+            'versions' => ['required', self::mustBeValidDocumentationValue(...)],
             'preference' => ['required', Rule::enum(SearchPreference::class)],
             'proximity' => 'required|integer|min:1|max:50',
             'formatter' => ['nullable', self::mustImplementOutputFormatter(...)],
+            'retain_artifacts' => 'required|boolean',
         ]);
 
         if ($rules->fails()) {

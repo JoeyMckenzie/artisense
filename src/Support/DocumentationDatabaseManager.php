@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Artisense\Support;
 
 use Illuminate\Database\ConnectionResolverInterface;
-use Illuminate\Filesystem\Filesystem;
+use Illuminate\Filesystem\Filesystem as Files;
 
 /**
  * @internal
@@ -14,7 +14,7 @@ final readonly class DocumentationDatabaseManager
 {
     public function __construct(
         private StorageManager $disk,
-        private Filesystem $files,
+        private Files $files,
         private ConnectionResolverInterface $resolver,
     ) {
         //

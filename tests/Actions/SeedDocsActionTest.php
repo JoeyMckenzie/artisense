@@ -18,6 +18,7 @@ covers(SeedDocsAction::class);
 describe(SeedDocsAction::class, function (): void {
     beforeEach(function (): void {
         $this->docsPath = $this->storagePath.'/'.$this->version->getExtractedFolderName();
+        $this->zipsPath = $this->storagePath.'/zips';
         File::ensureDirectoryExists($this->docsPath);
         File::copy(__DIR__.'/../Fixtures/artisan.md', $this->docsPath.'/artisan.md');
 

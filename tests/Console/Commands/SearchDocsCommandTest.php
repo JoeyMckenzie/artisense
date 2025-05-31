@@ -60,7 +60,7 @@ describe(SearchDocsCommand::class, function (): void {
             'link' => 'https://laravel.com/docs/11.x/artisan#introduction',
         ]);
 
-        Config::set('artisense.version', [
+        Config::set('artisense.versions', [
             DocumentationVersion::VERSION_11,
             DocumentationVersion::VERSION_12,
         ]);

@@ -43,14 +43,14 @@ jobs:
 
       - name: Upload coverage reports to Codecov
         # Only need to upload code coverage once
-        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' }}
+        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' && github.ref == 'refs/heads/main' }}
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Upload test results to Codecov
         # Only need to upload code coverage once
-        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' }}
+        if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' && github.ref == 'refs/heads/main' }}
         uses: codecov/test-results-action@v1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -17,6 +17,7 @@ Laravel docs from the comfort of your terminal.
 
 - [Motivation](#motivation)
 - [How it works](#how-it-works)
+- [Requirements](#requirements)
 - [Getting started](#getting-started)
 - [Usage](#usage)
     - [Versions](#versions)
@@ -67,6 +68,11 @@ documentation [source](https://github.com/laravel/docs).
 The documentation is downloaded as a zip file, extracted into a `artisense/docs-{version}.x/` folder, then processed
 into sections to allow full-text search using SQLite's [FTS5](https://www.sqlite.org/fts5.html) extension. Since
 artisense is just a SQLite file, you may connect and query it like any other SQLite database.
+
+## Requirements
+
+- Laravel 12 or greater
+- PHP 8.4 or greater
 
 ## Getting started
 

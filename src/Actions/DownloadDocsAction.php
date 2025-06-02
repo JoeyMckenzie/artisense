@@ -27,6 +27,8 @@ final readonly class DownloadDocsAction implements DownloadDocsActionContract
     public function handle(DocumentationVersion $version): void
     {
         $zipUrl = $version->getZipUrl();
+
+        // @phpstan-ignore-next-line staticMethod.dynamicCall
         $response = $this->http->get($zipUrl);
 
         if (! $response->ok()) {

@@ -76,7 +76,7 @@ final class SeedDocsAction implements SeedDocsActionContract
         /** @var list<array{non-empty-string, int<-1, max>}> $texts */
         $texts = $matches[2];
 
-        if (empty($headings)) {
+        if (count($headings) === 0) {
             self::createEntry('[Untitled]', '[Intro]', $raw, $path);
 
             return;

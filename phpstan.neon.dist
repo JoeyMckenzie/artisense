@@ -6,3 +6,7 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
+    ignoreErrors:
+        -
+            message: '#Dynamic call to static method Illuminate\\Database\\Eloquent\\Builder<Artisense\\Models\\DocumentationEntry>::(limit|orderByRaw|whereIn|whereRaw)#'
+            path: src/Console/Commands/SearchDocsCommand.php

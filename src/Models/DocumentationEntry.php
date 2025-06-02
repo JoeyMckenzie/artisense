@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Artisense\Models;
 
+use Eloquent;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -16,7 +18,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $version
  * @property string $link
  *
- * @internal
+ * @method static Builder<static>|DocumentationEntry query()
+ *
+ * @mixin Eloquent
  */
 final class DocumentationEntry extends Model
 {

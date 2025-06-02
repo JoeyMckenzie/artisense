@@ -34,7 +34,7 @@ final class BasicMarkdownFormatter implements OutputFormatterContract
             }
 
             // Handle headings (# Heading)
-            if (preg_match('/^(#{1,6})\s+(.+)$/', $line, $matches)) {
+            if (preg_match('/^(#{1,6})\s+(.+)$/', $line, $matches) === 1) {
                 $level = mb_strlen($matches[1]);
                 $text = $matches[2];
 
@@ -59,7 +59,7 @@ final class BasicMarkdownFormatter implements OutputFormatterContract
             $line = preg_replace_callback('/\*\*([^*]+)\*\*/', fn (array $matches): string => '<options=bold>**'.$matches[1].'**</>', (string) $line);
 
             // Handle lists
-            if (preg_match('/^(\s*)([\-*]|\d+\.)\s+(.+)$/', (string) $line, $matches)) {
+            if (preg_match('/^(\s*)([\-*]|\d+\.)\s+(.+)$/', (string) $line, $matches) === 1) {
                 $indent = $matches[1];
                 $bullet = $matches[2];
                 $text = $matches[3];

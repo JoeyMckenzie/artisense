@@ -30,7 +30,7 @@
 ```php
 covers(Calculator::class);
 
-describe(ClassUnderTest::class, function (): void {
+describe(Calculator::class, function (): void {
     it('ensure correct behavior', function (): void {
         // Arrange
         $sut = new Calculator();

@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Artisense\Tests;
 
 arch()->preset()->laravel();
+arch()->preset()->php();
+arch()->preset()->security();
+arch()->preset()->strict();
 
 arch('All test files are strictly typed')
     ->expect('Tests\\')

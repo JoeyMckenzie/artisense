@@ -104,7 +104,7 @@ return [
     |
     */
 
-    'version' => DocumentationVersion::VERSION_12,
+    'versions' => DocumentationVersion::VERSION_12,
 
     /*
     |--------------------------------------------------------------------------
@@ -135,6 +135,19 @@ return [
         'proximity' => 10,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Retain Artifacts
+    |--------------------------------------------------------------------------
+    |
+    | Specifies the artificat retention policy artisense should use when processing
+    | Laravel documentation. If set to true, documentation markdown files along
+    | zip archives will be retained within the storage folder during install.
+    |
+    */
+
+    'retain_artifacts' => true,
+
 ];
 ```
 
@@ -142,6 +155,22 @@ Artisense has a few tuning knobs within its configuration:
 
 - **Version**: specifies the version to run queries against, as multiple versions of the documentation may all be stored
   alongside one another
+    - Accepts either a single `DocumentationVersion` or an array of `DocumentationVersions`, e.g.
+
+```php
+return [
+    // Accepts a singe version
+    'versions' => DocumentationVersion::VERSION_12,
+    
+    // You may also specify multiple versions
+    'versions' => [
+        DocumentationVersion::VERSION_11,
+        DocumentationVersion::VERSION_12,
+        DocumentationVersion::MASTER,
+    ],
+];
+```
+
 - **Formatter**: specifies any custom formatting the markdown output should use when results are found
 - **Search preference**: SQLite full-text search preference, either `ordered` or `unordered`
 - **Search proximity**: relative distance between terms full-text search should consider when querying using an
@@ -256,10 +285,10 @@ return [
     // Other configurations...
     
     // Specify a version using the `DocumentationVersion` enum
-    'version' => DocumentationVersion::MASTER
+    'versions' => DocumentationVersion::MASTER
     
     // Specify versions using the `DocumentationVersion` enum
-    'version' => [
+    'versions' => [
         DocumentationVersion::VERSION_12,
         DocumentationVersion::VERSION_11,
         DocumentationVersion::MASTER,

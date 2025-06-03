@@ -48,6 +48,19 @@ final class StorageManager
             }
         }
 
+        $gitignoreFileContent = <<<'GITIGNORE'
+*
+!.gitignore
+GITIGNORE;
+
+        file_put_contents($this->path('.gitignore'), $gitignoreFileContent);
+    }
+
+    public function path(string $filepath): string
+    {
+        $path = sprintf('%s%s%s', $this->storageKey, DIRECTORY_SEPARATOR, $filepath);
+
+        return storage_path($path);
     }
 
     public function ensureDirectoryExists(string $path): void
@@ -79,13 +92,6 @@ final class StorageManager
         $directory = $this->path($filepath);
 
         return array_diff(scandir($directory), ['.', '..']);
-    }
-
-    public function path(string $filepath): string
-    {
-        $path = sprintf('%s%s%s', $this->storageKey, DIRECTORY_SEPARATOR, $filepath);
-
-        return storage_path($path);
     }
 
     public function delete(string $filepath): void

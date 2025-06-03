@@ -35,6 +35,18 @@ describe(StorageManager::class, function (): void {
         expect(File::exists(storage_path('artisense')))->toBeTrue();
     });
 
+    it('ensures gitignore exists', function (): void {
+        // Arrange
+        expect(File::exists(storage_path('artisense')))->toBeFalse();
+
+        // Act
+        $this->storageManager->ensureStorageDirectoriesExists();
+
+        // Assert
+        expect(File::exists(storage_path('artisense')))
+            ->and(File::exists(storage_path('artisense/.gitignore')))->toBeTrue();
+    });
+
     it('puts content into a file', function (): void {
         // Arrange
         $this->storageManager->ensureStorageDirectoriesExists();

@@ -2,6 +2,15 @@
 
 All notable changes to `artisense` will be documented in this file.
 
+## v0.2.4 - 2025-06-03
+
+### What's new?
+
+- Adds a `.gitignore` file on install to prevent files from being checked into source control
+- Minor bugfixes
+
+**Full Changelog**: https://github.com/JoeyMckenzie/artisense/compare/v0.2.3...v0.2.4
+
 ## v0.2.3 - 2025-05-31
 
 ### What's new?

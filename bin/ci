@@ -3,15 +3,15 @@
 set -e
 
 success() {
-  echo -e "\033[0;32m✓ $1\033[0m"
+    echo -e "\033[0;32m✓ $1\033[0m"
 }
 
 info() {
-  echo -e "\033[0;34mi $1\033[0m"
+    echo -e "\033[0;34mi $1\033[0m"
 }
 
 error() {
-  echo -e "\033[0;31m✗ $1\033[0m"
+    echo -e "\033[0;31m✗ $1\033[0m"
 }
 
 project_root=$(git rev-parse --show-toplevel)
@@ -19,13 +19,13 @@ vendor="$project_root/vendor"
 
 # Use POSIX-compatible test syntax or ensure bash is used
 case "$OSTYPE" in
-  linux*)
+linux*)
     OS_RUNNER="Linux"
     ;;
-  darwin*)
+darwin*)
     OS_RUNNER="macOS"
     ;;
-  *)
+*)
     error "OS runner could not be detected!"
     exit 1
     ;;
@@ -39,35 +39,35 @@ if [ ! -d "$vendor" ]; then
 fi
 
 # Use POSIX-compatible redirection
-if command -v aspell > /dev/null 2>&1; then
-  success "Aspell is already installed"
-  aspell_version=$(aspell --version | head -n 1)
-  info "Detected $aspell_version"
+if command -v aspell >/dev/null 2>&1; then
+    success "Aspell is already installed"
+    aspell_version=$(aspell --version | head -n 1)
+    info "Detected $aspell_version"
 else
-  if [ "$OS_RUNNER" = "Linux" ]; then
-    info "Installing Aspell on Linux..."
-    sudo apt-get update && sudo apt-get install -y aspell aspell-en
-    if [ $? -eq 0 ]; then
-      success "Aspell installed successfully"
-    else
-      error "Failed to install Aspell"
-      exit 1
+    if [ "$OS_RUNNER" = "Linux" ]; then
+        info "Installing Aspell on Linux..."
+        sudo apt-get update && sudo apt-get install -y aspell aspell-en
+        if [ $? -eq 0 ]; then
+            success "Aspell installed successfully"
+        else
+            error "Failed to install Aspell"
+            exit 1
+        fi
+    elif [ "$OS_RUNNER" = "macOS" ]; then
+        info "Installing Aspell on macOS..."
+        brew install aspell
+        if [ $? -eq 0 ]; then
+            success "Aspell installed successfully"
+        else
+            error "Failed to install Aspell"
+            exit 1
+        fi
     fi
-  elif [ "$OS_RUNNER" = "macOS" ]; then
-    info "Installing Aspell on macOS..."
-    brew install aspell
-    if [ $? -eq 0 ]; then
-      success "Aspell installed successfully"
-    else
-      error "Failed to install Aspell"
-      exit 1
-    fi
-  fi
 fi
 
 info "Running CI checks..."
 
-composer run ci
+composer ci
 
 info "Auditing dependencies..."
 

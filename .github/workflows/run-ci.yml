@@ -44,7 +44,7 @@ jobs:
       - name: Upload coverage reports to Codecov
         # Only need to upload code coverage once
         if: ${{ !cancelled() && matrix.php == '8.4' && matrix.stability == 'prefer-stable' && github.ref == 'refs/heads/main' }}
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
 
